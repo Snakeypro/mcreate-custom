@@ -4,22 +4,26 @@ import net.neoforged.neoforge.common.NeoForge;
 
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.Level;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.BlockPos;
 
 import com.xenrao.mcreate.events.KineticTickEvent;
 
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.content.kinetics.KineticNetwork;
+import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 
 /**
  * Base class for custom generator kinetic block entities.
  * These blocks PRODUCE rotational power rather than consuming it.
- * Set generatedSpeed to control RPM output and generatedCapacity for SU provided.
+ *
+ * GeneratingKineticBlockEntity is the correct Create base for power sources —
+ * it provides getGeneratedSpeed(), updateGeneratedRotation(), and handles
+ * stress capacity automatically (negative stress impact = SU provided).
+ *
+ * Set generatedSpeed to control RPM output.
+ * Set generatedCapacity to control how many SU this block contributes.
  */
-public abstract class CustomGeneratorKineticBlockEntity extends KineticBlockEntity {
+public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineticBlockEntity {
 	/** RPM this generator produces. Positive = clockwise, negative = counter-clockwise. */
 	protected float generatedSpeed = 32.0f;
 	/** Stress Units (SU) capacity this generator adds to the network. */
@@ -43,7 +47,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends KineticBlockEnti
 
 	// ============== Setters
 	/**
-	 * Sets the RPM this generator produces and updates the kinetic network.
+	 * Sets the RPM this generator produces and propagates the change through
+	 * the kinetic network via updateGeneratedRotation().
 	 */
 	public void setGeneratedSpeed(float speed) {
 		this.generatedSpeed = speed;
@@ -53,16 +58,13 @@ public abstract class CustomGeneratorKineticBlockEntity extends KineticBlockEnti
 	}
 
 	/**
-	 * Sets the SU capacity this generator provides and updates the kinetic network.
+	 * Sets the SU capacity this generator provides.
+	 * The network is notified via notifyStressCapacityChange().
 	 */
 	public void setGeneratedCapacity(double capacity) {
 		this.generatedCapacity = capacity;
 		if (level != null && !level.isClientSide) {
-			if (hasNetwork()) {
-				KineticNetwork network = getOrCreateNetwork();
-				network.updateStressFor(this, calculateStressApplied());
-				network.updateStress();
-			}
+			notifyStressCapacityChange();
 		}
 	}
 
@@ -76,7 +78,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends KineticBlockEnti
 
 	// ============== Generator overrides
 	/**
-	 * Returns the speed this block generates. Overriding this is what makes it a source.
+	 * Returns the speed this block generates.
+	 * This is what Create checks to treat the block as a rotation source.
 	 */
 	@Override
 	public float getGeneratedSpeed() {
@@ -84,7 +87,7 @@ public abstract class CustomGeneratorKineticBlockEntity extends KineticBlockEnti
 	}
 
 	/**
-	 * Negative value = adds SU capacity to the network (generator behaviour).
+	 * Negative stress impact = adds SU capacity to the network.
 	 */
 	@Override
 	public float calculateStressApplied() {
