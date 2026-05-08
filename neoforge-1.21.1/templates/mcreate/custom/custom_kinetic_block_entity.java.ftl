@@ -64,6 +64,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	protected ScrollValueBehaviour scrollValue;
 	private boolean scrollValueEnabled = false;
 	private int scrollPrevValue = 0;
+	/** Comma-split option labels for discrete "option selector" mode. Null = numeric mode. */
+	private String[] scrollValueOptions = null;
 
 	public CustomKineticBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -78,7 +80,13 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			new KineticScrollBoxTransform()
 		)
 		.between(-256, 256)
-		.withFormatter(v -> String.valueOf(v))
+		.withFormatter(v -> {
+			if (scrollValueOptions != null && scrollValueOptions.length > 0) {
+				int i = Math.max(0, Math.min(v, scrollValueOptions.length - 1));
+				return scrollValueOptions[i];
+			}
+			return String.valueOf(v);
+		})
 		.onlyActiveWhen(() -> scrollValueEnabled)
 		.withCallback(newVal -> {
 			if (level != null && !level.isClientSide) {
@@ -173,6 +181,66 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		scrollValueEnabled = false;
 	}
 
+	/**
+	 * Enables the scroll value box as a discrete option selector.
+	 * The player scrolls through a fixed list of named options instead of a raw number.
+	 *
+	 * @param label        Text shown at the top of the value picker (e.g. "Direction", "Mode")
+	 * @param options      Comma-separated list of option names, e.g. "Clockwise,Stopped,Counter-Clockwise"
+	 * @param defaultIndex Index of the option that is selected by default (0-based)
+	 *
+	 * Example (from a procedure):
+	 *   enableScrollValueOptions("Direction", "Clockwise,Stopped,Counter-Clockwise", 1)
+	 *   → shows three buttons; KineticScrollValueEvent fires with newValue = 0, 1, or 2
+	 *   → call getScrollValueOptionLabel() to read the current option name as a String
+	 */
+	public void enableScrollValueOptions(String label, String options, int defaultIndex) {
+		String[] opts = options.split(",");
+		for (int i = 0; i < opts.length; i++) {
+			opts[i] = opts[i].trim();
+		}
+		this.scrollValueOptions = opts;
+		if (scrollValue != null) {
+			scrollValue.setLabel(Component.literal(label));
+			scrollValue.between(0, Math.max(0, opts.length - 1));
+			scrollValue.setValue(Math.max(0, Math.min(defaultIndex, opts.length - 1)));
+		}
+		scrollValueEnabled = true;
+	}
+
+	/**
+	 * Updates the option list for an already-enabled option selector without changing the label.
+	 * Useful when the available choices depend on game state.
+	 * Clamps the current index into the new list if it is out of range.
+	 *
+	 * @param options Comma-separated list of option names
+	 */
+	public void setScrollValueOptions(String options) {
+		String[] opts = options.split(",");
+		for (int i = 0; i < opts.length; i++) {
+			opts[i] = opts[i].trim();
+		}
+		this.scrollValueOptions = opts;
+		if (scrollValue != null) {
+			int maxIdx = Math.max(0, opts.length - 1);
+			scrollValue.between(0, maxIdx);
+			if (scrollValue.getValue() > maxIdx) {
+				scrollValue.setValue(maxIdx);
+			}
+		}
+	}
+
+	/**
+	 * Returns the label of the currently selected option when using the option selector mode.
+	 * Returns an empty string if the scroll value box is not in option-selector mode.
+	 */
+	public String getScrollValueOptionLabel() {
+		if (scrollValue == null || scrollValueOptions == null || scrollValueOptions.length == 0)
+			return "";
+		int idx = Math.max(0, Math.min(scrollValue.getValue(), scrollValueOptions.length - 1));
+		return scrollValueOptions[idx];
+	}
+
 	// ============== Stress
 	@Override
 	public float calculateStressApplied() {
@@ -221,6 +289,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		tag.putDouble("ImpactValue", impactValue);
 		tag.putBoolean("ScrollValueEnabled", scrollValueEnabled);
 		tag.putInt("ScrollPrevValue", scrollPrevValue);
+		if (scrollValueOptions != null)
+			tag.putString("ScrollValueOptions", String.join(",", scrollValueOptions));
 	}
 
 	@Override
@@ -240,6 +310,14 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			scrollValueEnabled = tag.getBoolean("ScrollValueEnabled");
 		if (tag.contains("ScrollPrevValue"))
 			scrollPrevValue = tag.getInt("ScrollPrevValue");
+		if (tag.contains("ScrollValueOptions")) {
+			String opts = tag.getString("ScrollValueOptions");
+			if (!opts.isEmpty()) {
+				String[] raw = opts.split(",");
+				for (int i = 0; i < raw.length; i++) raw[i] = raw[i].trim();
+				scrollValueOptions = raw;
+			}
+		}
 		// Note: the ScrollValueBehaviour value itself is saved/loaded automatically by Create
 	}
 
