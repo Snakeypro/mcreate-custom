@@ -16,20 +16,28 @@ import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
  * Base class for custom generator kinetic block entities.
  * Extends GeneratingKineticBlockEntity — the correct Create base for power SOURCES.
  *
- * GeneratingKineticBlockEntity:
- *   - Makes Create treat this block as a rotation source (not a consumer)
- *   - Provides updateGeneratedRotation() to propagate speed changes to the network
- *   - Provides notifyStressCapacityChange(float) to update the SU budget
+ * Create's GeneratingKineticBlockEntity uses TWO separate methods for stress:
  *
- * Set generatedSpeed  → controls RPM output (positive = clockwise)
- * Set generatedCapacity → controls SU capacity added to the network
+ *   calculateAddedStressCapacity() — how many SU this generator PROVIDES to the network.
+ *                                    Must return a POSITIVE value.
+ *                                    This is what goggles show as "Generator Stats: Capacity"
+ *
+ *   calculateStressApplied()       — how much stress this block CONSUMES from the network.
+ *                                    For a generator this should be 0.
+ *
+ * Inside updateGeneratedRotation(), Create calls BOTH:
+ *   notifyStressCapacityChange(calculateAddedStressCapacity());
+ *   network.updateStressFor(this, calculateStressApplied());
+ *
+ * The previous implementation incorrectly overrode calculateStressApplied() with
+ * a negative value — this consumed negative stress rather than providing capacity.
  */
 public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineticBlockEntity {
 
 	/** RPM this generator produces. Positive = clockwise, negative = counter-clockwise. */
 	protected float generatedSpeed = 32.0f;
 
-	/** Stress Units (SU) capacity this generator adds to the network. */
+	/** Stress Units (SU) capacity this generator adds to the network. Must be positive. */
 	protected double generatedCapacity = 128.0;
 
 	// ============== Events
@@ -53,8 +61,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 	/**
 	 * Sets the RPM this generator produces and propagates it through the kinetic network.
-	 * updateGeneratedRotation() re-evaluates getGeneratedSpeed() and pushes the new speed
-	 * to all connected blocks.
+	 * updateGeneratedRotation() re-evaluates getGeneratedSpeed() and also calls
+	 * calculateAddedStressCapacity() + calculateStressApplied() internally.
 	 */
 	public void setGeneratedSpeed(float speed) {
 		this.generatedSpeed = speed;
@@ -64,14 +72,14 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	/**
-	 * Sets the SU capacity this generator provides and notifies the network.
-	 * notifyStressCapacityChange(float) is the correct GeneratingKineticBlockEntity
-	 * API for updating the stress budget.
+	 * Sets the SU capacity this generator provides.
+	 * Calls updateGeneratedRotation() which internally calls
+	 * notifyStressCapacityChange(calculateAddedStressCapacity()) — the correct path.
 	 */
 	public void setGeneratedCapacity(double capacity) {
 		this.generatedCapacity = capacity;
 		if (level != null && !level.isClientSide) {
-			notifyStressCapacityChange((float) capacity);
+			updateGeneratedRotation();
 		}
 	}
 
@@ -86,9 +94,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	// ============== Generator overrides
 
 	/**
-	 * This is the method Create calls to decide if this block is a rotation SOURCE.
-	 * Any non-zero return value makes Create treat it as a generator.
-	 * Returning 0 makes it a passive block — always return generatedSpeed here.
+	 * Returns the speed this generator produces.
+	 * Any non-zero value makes Create treat this as a rotation source.
 	 */
 	@Override
 	public float getGeneratedSpeed() {
@@ -96,13 +103,30 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	/**
-	 * Negative stress impact = this block ADDS SU capacity to the network.
-	 * This is how Create distinguishes generators (negative) from consumers (positive).
+	 * Returns the SU capacity this generator PROVIDES to the network.
+	 * Must be a POSITIVE value. Create multiplies this by speed internally
+	 * when displaying in goggles.
+	 *
+	 * This is called by updateGeneratedRotation() via:
+	 *   notifyStressCapacityChange(calculateAddedStressCapacity())
+	 */
+	@Override
+	public float calculateAddedStressCapacity() {
+		this.lastCapacityProvided = (float) generatedCapacity;
+		return (float) generatedCapacity;
+	}
+
+	/**
+	 * Returns how much stress this block CONSUMES.
+	 * For a generator this is 0 — generators provide capacity, they don't consume stress.
+	 *
+	 * This is called by updateGeneratedRotation() via:
+	 *   network.updateStressFor(this, calculateStressApplied())
 	 */
 	@Override
 	public float calculateStressApplied() {
-		this.lastStressApplied = -(float) generatedCapacity;
-		return -(float) generatedCapacity;
+		this.lastStressApplied = 0;
+		return 0;
 	}
 
 	// ============== Ticks
