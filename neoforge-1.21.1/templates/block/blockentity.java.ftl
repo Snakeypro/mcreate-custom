@@ -31,7 +31,9 @@
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
 
-<#assign isKineticBlock = name?starts_with("CKB")>
+<#assign isGeneratorBlock = name?starts_with("CKBG")>
+<#assign isKineticBlock = name?starts_with("CKB") && !isGeneratorBlock>
+<#assign kineticBaseClass = isGeneratorBlock?then("CustomGeneratorKineticBlockEntity", "CustomKineticBlockEntity")>
 
 package ${package}.block.entity;
 
@@ -40,8 +42,8 @@ package ${package}.block.entity;
 <#-- ================================================================ -->
 <#--   KINETIC BLOCK ENTITY                                           -->
 <#-- ================================================================ -->
-<#if isKineticBlock>
-public class ${name}BlockEntity extends CustomKineticBlockEntity implements WorldlyContainer
+<#if isKineticBlock || isGeneratorBlock>
+public class ${name}BlockEntity extends ${kineticBaseClass} implements WorldlyContainer
     <#if data.sensitiveToVibration>, GameEventListener.Provider<VibrationSystem.Listener>, VibrationSystem</#if> {
 
     <#-- ── Kinetic'e özel ── -->
