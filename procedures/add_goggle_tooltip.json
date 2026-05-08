@@ -1,0 +1,25 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "tooltip",
+      "check": "String"
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#ff8700",
+  "mcreator": {
+    "toolbox_id": "goggles",
+    "toolbox_init": [
+      "<value name=\"tooltip\"><block type=\"text\"><field name=\"TEXT\">tooltip</field></block></value>"
+    ],
+    "inputs": [
+      "tooltip"
+    ],
+    "required_apis": [
+      "create_"
+    ]
+  }
+}

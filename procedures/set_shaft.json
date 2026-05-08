@@ -1,0 +1,39 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "direction",
+      "check": "Direction"
+    },
+    {
+      "type": "input_value",
+      "name": "value",
+      "check": "Boolean"
+    },
+    {
+      "type": "input_value",
+      "name": "block",
+      "check": "MCItemBlock"
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#c300ff",
+  "mcreator": {
+    "toolbox_id": "block",
+    "toolbox_init": [
+      "<value name=\"direction\"><block type=\"direction_constant\">NORTH</block></value>",
+      "<value name=\"value\"><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></value>",
+      "<value name=\"block\"><block type=\"mcitem_allblocks\"><field name=\"value\"></field></block></value>"
+    ],
+    "inputs": [
+      "direction",
+      "value",
+      "block"
+    ],
+    "required_apis": [
+      "create_"
+    ]
+  }
+}

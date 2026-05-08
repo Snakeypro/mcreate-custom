@@ -1,0 +1,16 @@
+{
+  "id": "mcreate",
+  "weight": 30,
+  "minversion": 0,
+  "supportedversions": [
+    2026001
+  ]
+,
+  "info": {
+    "name": "Create 6.0.7 Api and Kinetic Support for 1.21.1 NeoForge",
+    "version": "2.0",
+    "description": "Api and Kinetic support for Create 6.0.7 for MCreator",
+    "author": "XenraO",
+    "credits": "XenraO"
+  }
+}

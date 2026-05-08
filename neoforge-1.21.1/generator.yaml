@@ -1,0 +1,27 @@
+base_templates:
+  # client
+  - template: mcreate/client/mcreate_client_handler.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/client/McreateClientHandler.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  - template: mcreate/client/mcreate_client_renderer.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/client/McreateClientRenderer.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  # utils
+  - template: mcreate/util/direction_helper.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/util/DirectionHelper.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  # custom extends
+  - template: mcreate/custom/custom_kinetic_block_entity.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/custom/CustomKineticBlockEntity.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  - template: mcreate/custom/custom_directional_kinetic_block.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/custom/CustomDirectionalKineticBlock.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  # events
+  - template: mcreate/events/goggle_tooltip_event.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/events/GoggleTooltipEvent.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  - template: mcreate/events/kinetic_tick_event.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/events/KineticTickEvent.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+    

@@ -1,0 +1,26 @@
+{
+  "args0": [
+    {
+      "type": "input_statement",
+      "name": "values"
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#ff8700",
+  "mcreator": {
+    "toolbox_id": "goggles",
+    "toolbox_init": [
+    ],
+    "statements": [
+      {
+        "name": "values",
+        "disable_local_variables": false
+      }
+    ],
+    "required_apis": [
+      "create_"
+    ]
+  }
+}

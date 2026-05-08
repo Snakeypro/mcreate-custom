@@ -1,0 +1,1 @@
+gtEvent.clearGoggleTooltip();

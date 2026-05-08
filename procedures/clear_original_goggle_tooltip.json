@@ -1,0 +1,16 @@
+{
+  "args0": [
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#ff8700",
+  "mcreator": {
+    "toolbox_id": "goggles",
+    "toolbox_init": [
+    ],
+    "required_apis": [
+      "create_"
+    ]
+  }
+}
