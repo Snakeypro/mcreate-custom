@@ -66,6 +66,11 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	private int scrollPrevValue = 0;
 	/** Comma-split option labels for discrete "option selector" mode. Null = numeric mode. */
 	private String[] scrollValueOptions = null;
+	/** Label shown in the value box. Persisted so it survives world reload and client sync. */
+	private String scrollLabel = "Value";
+	/** Numeric mode min/max — persisted so they survive world reload and client sync. */
+	private int scrollMin = -256;
+	private int scrollMax = 256;
 
 	public CustomKineticBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -170,6 +175,10 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			scrollValue.between(min, max);
 			scrollValue.setValue(defaultValue);
 		}
+		scrollLabel = label;
+		scrollMin = min;
+		scrollMax = max;
+		scrollValueOptions = null;
 		scrollValueEnabled = true;
 	}
 
@@ -200,6 +209,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			opts[i] = opts[i].trim();
 		}
 		this.scrollValueOptions = opts;
+		this.scrollLabel = label;
+		this.scrollMin = 0;
+		this.scrollMax = Math.max(0, opts.length - 1);
 		if (scrollValue != null) {
 			scrollValue.setLabel(Component.literal(label));
 			scrollValue.between(0, Math.max(0, opts.length - 1));
@@ -289,6 +301,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		tag.putDouble("ImpactValue", impactValue);
 		tag.putBoolean("ScrollValueEnabled", scrollValueEnabled);
 		tag.putInt("ScrollPrevValue", scrollPrevValue);
+		tag.putString("ScrollLabel", scrollLabel);
+		tag.putInt("ScrollMin", scrollMin);
+		tag.putInt("ScrollMax", scrollMax);
 		if (scrollValueOptions != null)
 			tag.putString("ScrollValueOptions", String.join(",", scrollValueOptions));
 	}
@@ -310,6 +325,12 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			scrollValueEnabled = tag.getBoolean("ScrollValueEnabled");
 		if (tag.contains("ScrollPrevValue"))
 			scrollPrevValue = tag.getInt("ScrollPrevValue");
+		if (tag.contains("ScrollLabel"))
+			scrollLabel = tag.getString("ScrollLabel");
+		if (tag.contains("ScrollMin"))
+			scrollMin = tag.getInt("ScrollMin");
+		if (tag.contains("ScrollMax"))
+			scrollMax = tag.getInt("ScrollMax");
 		if (tag.contains("ScrollValueOptions")) {
 			String opts = tag.getString("ScrollValueOptions");
 			if (!opts.isEmpty()) {
@@ -317,6 +338,15 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 				for (int i = 0; i < raw.length; i++) raw[i] = raw[i].trim();
 				scrollValueOptions = raw;
 			}
+		}
+		// Re-apply label and range to the ScrollValueBehaviour so both server (world
+		// reload) and client (sync packet) stay consistent with the stored configuration.
+		if (scrollValue != null) {
+			scrollValue.setLabel(Component.literal(scrollLabel));
+			if (scrollValueOptions != null && scrollValueOptions.length > 0)
+				scrollValue.between(0, scrollValueOptions.length - 1);
+			else
+				scrollValue.between(scrollMin, scrollMax);
 		}
 		// Note: the ScrollValueBehaviour value itself is saved/loaded automatically by Create
 	}
