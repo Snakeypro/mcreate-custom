@@ -18,19 +18,15 @@ import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
  *
  * Create's GeneratingKineticBlockEntity uses TWO separate methods for stress:
  *
- *   calculateAddedStressCapacity() — how many SU this generator PROVIDES to the network.
- *                                    Must return a POSITIVE value.
- *                                    This is what goggles show as "Generator Stats: Capacity"
+ *   calculateAddedStressCapacity() — SU this generator PROVIDES. Must be POSITIVE.
+ *   calculateStressApplied()       — SU this block CONSUMES. Should be 0 for generators.
  *
- *   calculateStressApplied()       — how much stress this block CONSUMES from the network.
- *                                    For a generator this should be 0.
- *
- * Inside updateGeneratedRotation(), Create calls BOTH:
- *   notifyStressCapacityChange(calculateAddedStressCapacity());
- *   network.updateStressFor(this, calculateStressApplied());
- *
- * The previous implementation incorrectly overrode calculateStressApplied() with
- * a negative value — this consumed negative stress rather than providing capacity.
+ * IMPORTANT — timing:
+ *   setGeneratedSpeed/setGeneratedCapacity are often called from "block placed" procedures,
+ *   which fire during Block.onPlace() BEFORE the block entity's level field is injected.
+ *   updateGeneratedRotation() returns early when level == null, so the network is never
+ *   created. initialize() is the correct hook — Create calls it after the BE is fully
+ *   loaded with level set, both on fresh placement and on chunk load.
  */
 public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineticBlockEntity {
 
@@ -48,6 +44,24 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		super(type, pos, state);
 	}
 
+	// ============== Initialize
+	/**
+	 * Called by Create after the block entity is fully loaded into the world (level set).
+	 * This fires both on fresh placement and on chunk load — it is the correct place to
+	 * start the kinetic network for a generator.
+	 *
+	 * "Block placed" procedures fire during Block.onPlace(), before level is injected,
+	 * so updateGeneratedRotation() called there is silently ignored. The values are saved
+	 * to NBT fields, and this method picks them up at the right time.
+	 */
+	@Override
+	public void initialize() {
+		super.initialize();
+		if (level != null && !level.isClientSide) {
+			updateGeneratedRotation();
+		}
+	}
+
 	// ============== Getters
 	public float getGeneratedSpeedValue() {
 		return generatedSpeed;
@@ -60,9 +74,10 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	// ============== Setters
 
 	/**
-	 * Sets the RPM this generator produces and propagates it through the kinetic network.
-	 * updateGeneratedRotation() re-evaluates getGeneratedSpeed() and also calls
-	 * calculateAddedStressCapacity() + calculateStressApplied() internally.
+	 * Sets the RPM this generator produces.
+	 * If called after placement (level is set), immediately propagates to the network.
+	 * If called during Block.onPlace() (level is null), the value is stored and
+	 * initialize() will apply it once the BE is fully loaded.
 	 */
 	public void setGeneratedSpeed(float speed) {
 		this.generatedSpeed = speed;
@@ -73,13 +88,16 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 	/**
 	 * Sets the SU capacity this generator provides.
-	 * Calls updateGeneratedRotation() which internally calls
-	 * notifyStressCapacityChange(calculateAddedStressCapacity()) — the correct path.
+	 * If the network already exists, notifies it immediately.
+	 * If called during Block.onPlace() (level is null), the value is stored and
+	 * initialize() will apply it once the BE is fully loaded.
 	 */
 	public void setGeneratedCapacity(double capacity) {
 		this.generatedCapacity = capacity;
 		if (level != null && !level.isClientSide) {
-			updateGeneratedRotation();
+			if (hasNetwork()) {
+				notifyStressCapacityChange(calculateAddedStressCapacity());
+			}
 		}
 	}
 
@@ -104,10 +122,7 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 	/**
 	 * Returns the SU capacity this generator PROVIDES to the network.
-	 * Must be a POSITIVE value. Create multiplies this by speed internally
-	 * when displaying in goggles.
-	 *
-	 * This is called by updateGeneratedRotation() via:
+	 * Must be POSITIVE. Called by updateGeneratedRotation() via:
 	 *   notifyStressCapacityChange(calculateAddedStressCapacity())
 	 */
 	@Override
@@ -117,10 +132,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	/**
-	 * Returns how much stress this block CONSUMES.
-	 * For a generator this is 0 — generators provide capacity, they don't consume stress.
-	 *
-	 * This is called by updateGeneratedRotation() via:
+	 * Returns how much stress this block CONSUMES — 0 for generators.
+	 * Called by updateGeneratedRotation() via:
 	 *   network.updateStressFor(this, calculateStressApplied())
 	 */
 	@Override
