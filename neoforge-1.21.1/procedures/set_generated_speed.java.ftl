@@ -1,2 +1,2 @@
-if (world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z})) instanceof CustomGeneratorKineticBlockEntity cgkbe)
-	cgkbe.setGeneratedSpeed((float) (${input$speed}));
+if (world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z})) instanceof CustomGeneratorKineticBlockEntity ckbge)
+	ckbge.setGeneratedSpeed((float) ${input$speed});
