@@ -17,6 +17,9 @@ base_templates:
   - template: mcreate/custom/custom_directional_kinetic_block.java.ftl
     name: "@SRCROOT/com/xenrao/mcreate/custom/CustomDirectionalKineticBlock.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
+  - template: mcreate/custom/custom_generator_kinetic_block_entity.java.ftl
+    name: "@SRCROOT/com/xenrao/mcreate/custom/CustomGeneratorKineticBlockEntity.java"
+    condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   # events
   - template: mcreate/events/goggle_tooltip_event.java.ftl
     name: "@SRCROOT/com/xenrao/mcreate/events/GoggleTooltipEvent.java"
