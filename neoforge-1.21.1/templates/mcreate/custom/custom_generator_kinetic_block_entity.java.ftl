@@ -59,12 +59,12 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 	/**
 	 * Sets the SU capacity this generator provides.
-	 * The network is notified via notifyStressCapacityChange().
+	 * Notifies the network with the new capacity value.
 	 */
 	public void setGeneratedCapacity(double capacity) {
 		this.generatedCapacity = capacity;
 		if (level != null && !level.isClientSide) {
-			notifyStressCapacityChange();
+			notifyStressCapacityChange((float) capacity);
 		}
 	}
 
