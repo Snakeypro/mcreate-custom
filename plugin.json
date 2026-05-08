@@ -4,8 +4,7 @@
   "minversion": 0,
   "supportedversions": [
     2026001
-  ]
-,
+  ],
   "info": {
     "name": "Create 6.0.7 Api and Kinetic Support for 1.21.1 NeoForge",
     "version": "2.0",
