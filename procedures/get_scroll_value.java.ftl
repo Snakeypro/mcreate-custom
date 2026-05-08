@@ -1,1 +1,0 @@
-world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z})) instanceof CustomKineticBlockEntity _ckbe ? _ckbe.getScrollValue() : (world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z})) instanceof CustomGeneratorKineticBlockEntity _ckbge ? _ckbge.getScrollValue() : 0)

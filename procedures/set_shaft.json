@@ -21,7 +21,7 @@
   "nextStatement": null,
   "colour": "#c300ff",
   "mcreator": {
-    "toolbox_id": "block",
+    "toolbox_id": "kinetic_block",
     "toolbox_init": [
       "<value name=\"direction\"><block type=\"direction_constant\">NORTH</block></value>",
       "<value name=\"value\"><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></value>",

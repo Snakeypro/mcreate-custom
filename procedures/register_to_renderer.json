@@ -11,7 +11,7 @@
   "nextStatement": null,
   "colour": "#c300ff",
   "mcreator": {
-    "toolbox_id": "block_entity",
+    "toolbox_id": "kinetic_block_entity",
     "toolbox_init": [
       "<value name=\"block\"><block type=\"mcitem_allblocks\"><field name=\"value\"></field></block></value>"
     ],
