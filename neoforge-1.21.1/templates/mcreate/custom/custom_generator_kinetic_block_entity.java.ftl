@@ -14,20 +14,24 @@ import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 
 /**
  * Base class for custom generator kinetic block entities.
- * These blocks PRODUCE rotational power rather than consuming it.
+ * Extends GeneratingKineticBlockEntity — the correct Create base for power SOURCES.
  *
- * GeneratingKineticBlockEntity is the correct Create base for power sources —
- * it provides getGeneratedSpeed(), updateGeneratedRotation(), and handles
- * stress capacity automatically (negative stress impact = SU provided).
+ * GeneratingKineticBlockEntity:
+ *   - Makes Create treat this block as a rotation source (not a consumer)
+ *   - Provides updateGeneratedRotation() to propagate speed changes to the network
+ *   - Provides notifyStressCapacityChange(float) to update the SU budget
  *
- * Set generatedSpeed to control RPM output.
- * Set generatedCapacity to control how many SU this block contributes.
+ * Set generatedSpeed  → controls RPM output (positive = clockwise)
+ * Set generatedCapacity → controls SU capacity added to the network
  */
 public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineticBlockEntity {
+
 	/** RPM this generator produces. Positive = clockwise, negative = counter-clockwise. */
 	protected float generatedSpeed = 32.0f;
+
 	/** Stress Units (SU) capacity this generator adds to the network. */
 	protected double generatedCapacity = 128.0;
+
 	// ============== Events
 	protected boolean disableTickEvent = false;
 	protected boolean disableLazyTickEvent = false;
@@ -46,9 +50,11 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	// ============== Setters
+
 	/**
-	 * Sets the RPM this generator produces and propagates the change through
-	 * the kinetic network via updateGeneratedRotation().
+	 * Sets the RPM this generator produces and propagates it through the kinetic network.
+	 * updateGeneratedRotation() re-evaluates getGeneratedSpeed() and pushes the new speed
+	 * to all connected blocks.
 	 */
 	public void setGeneratedSpeed(float speed) {
 		this.generatedSpeed = speed;
@@ -58,8 +64,9 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	/**
-	 * Sets the SU capacity this generator provides.
-	 * Notifies the network with the new capacity value.
+	 * Sets the SU capacity this generator provides and notifies the network.
+	 * notifyStressCapacityChange(float) is the correct GeneratingKineticBlockEntity
+	 * API for updating the stress budget.
 	 */
 	public void setGeneratedCapacity(double capacity) {
 		this.generatedCapacity = capacity;
@@ -77,9 +84,11 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	// ============== Generator overrides
+
 	/**
-	 * Returns the speed this block generates.
-	 * This is what Create checks to treat the block as a rotation source.
+	 * This is the method Create calls to decide if this block is a rotation SOURCE.
+	 * Any non-zero return value makes Create treat it as a generator.
+	 * Returning 0 makes it a passive block — always return generatedSpeed here.
 	 */
 	@Override
 	public float getGeneratedSpeed() {
@@ -87,7 +96,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	}
 
 	/**
-	 * Negative stress impact = adds SU capacity to the network.
+	 * Negative stress impact = this block ADDS SU capacity to the network.
+	 * This is how Create distinguishes generators (negative) from consumers (positive).
 	 */
 	@Override
 	public float calculateStressApplied() {
