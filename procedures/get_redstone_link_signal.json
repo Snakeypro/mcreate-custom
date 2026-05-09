@@ -2,18 +2,13 @@
   "args0": [
     {
       "type": "input_value",
-      "name": "x",
-      "check": "Number"
+      "name": "freq1",
+      "check": "MCItemBlock"
     },
     {
       "type": "input_value",
-      "name": "y",
-      "check": "Number"
-    },
-    {
-      "type": "input_value",
-      "name": "z",
-      "check": "Number"
+      "name": "freq2",
+      "check": "MCItemBlock"
     }
   ],
   "inputsInline": true,
@@ -22,14 +17,12 @@
   "mcreator": {
     "toolbox_id": "create",
     "toolbox_init": [
-      "<value name=\"x\"><block type=\"coord_x\"></block></value>",
-      "<value name=\"y\"><block type=\"coord_y\"></block></value>",
-      "<value name=\"z\"><block type=\"coord_z\"></block></value>"
+      "<value name=\"freq1\"><block type=\"mcitem_allblocks\"><field name=\"value\">minecraft:redstone_block</field></block></value>",
+      "<value name=\"freq2\"><block type=\"mcitem_allblocks\"><field name=\"value\">minecraft:stone</field></block></value>"
     ],
     "inputs": [
-      "x",
-      "y",
-      "z"
+      "freq1",
+      "freq2"
     ],
     "dependencies": [
       {
