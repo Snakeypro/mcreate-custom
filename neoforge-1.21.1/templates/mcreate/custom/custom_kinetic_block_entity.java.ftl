@@ -159,6 +159,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	 */
 	public void enableScrollValue() {
 		scrollValueEnabled = true;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	/**
@@ -180,6 +182,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		scrollMax = max;
 		scrollValueOptions = null;
 		scrollValueEnabled = true;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	/**
@@ -188,11 +192,15 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	 */
 	public void disableScrollValue() {
 		scrollValueEnabled = false;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	/**
 	 * Enables the scroll value box as a discrete option selector.
 	 * The player scrolls through a fixed list of named options instead of a raw number.
+	 * The interaction UI displays the actual option name for the current selection instead
+	 * of a raw integer, and scrolling is constrained to the valid index range (0 to N-1).
 	 *
 	 * @param label        Text shown at the top of the value picker (e.g. "Direction", "Mode")
 	 * @param options      Comma-separated list of option names, e.g. "Clockwise,Stopped,Counter-Clockwise"
@@ -200,7 +208,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	 *
 	 * Example (from a procedure):
 	 *   enableScrollValueOptions("Direction", "Clockwise,Stopped,Counter-Clockwise", 1)
-	 *   → shows three buttons; KineticScrollValueEvent fires with newValue = 0, 1, or 2
+	 *   → interaction UI shows "Stopped"; scrolling cycles through the named options
+	 *   → KineticScrollValueEvent fires with newValue = 0, 1, or 2
 	 *   → call getScrollValueOptionLabel() to read the current option name as a String
 	 */
 	public void enableScrollValueOptions(String label, String options, int defaultIndex) {
@@ -218,6 +227,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			scrollValue.setValue(Math.max(0, Math.min(defaultIndex, opts.length - 1)));
 		}
 		scrollValueEnabled = true;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	/**
@@ -240,6 +251,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 				scrollValue.setValue(maxIdx);
 			}
 		}
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	/**
@@ -251,6 +264,19 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			return "";
 		int idx = Math.max(0, Math.min(scrollValue.getValue(), scrollValueOptions.length - 1));
 		return scrollValueOptions[idx];
+	}
+
+	// ============== Initialize
+	/**
+	 * Called by Create after the block entity is fully loaded into the world.
+	 * Used here to push any scroll-value configuration (set during "block placed"
+	 * procedures, when level was still null) to clients via sendData().
+	 */
+	@Override
+	public void initialize() {
+		super.initialize();
+		if (level != null && !level.isClientSide && scrollValueEnabled)
+			sendData();
 	}
 
 	// ============== Stress
