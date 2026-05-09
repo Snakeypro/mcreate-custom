@@ -20,10 +20,17 @@ import java.util.List;
 import com.xenrao.mcreate.events.KineticTickEvent;
 import com.xenrao.mcreate.events.KineticScrollValueEvent;
 
+import com.google.common.collect.ImmutableList;
+
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter.ScrollOptionSettingsFormatter;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
+import com.simibubi.create.foundation.gui.AllIcons;
 
 import net.createmod.catnip.math.VecHelper;
 import net.createmod.catnip.math.AngleHelper;
@@ -67,11 +74,15 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	private int scrollPrevValue = 0;
 	/** Comma-split option labels for discrete "option selector" mode. Null = numeric mode. */
 	private String[] scrollValueOptions = null;
+	/** Comma-split Create AllIcons field names for icon+text selector mode. Null = text-only mode. */
+	private String[] scrollValueIconNames = null;
 	/** Label shown in the value box. Persisted so it survives world reload and client sync. */
 	private String scrollLabel = "Value";
 	/** Numeric mode min/max — persisted so they survive world reload and client sync. */
 	private int scrollMin = -256;
 	private int scrollMax = 256;
+	/** Cached icon resolution map (field name → AllIcons instance). */
+	private static final java.util.Map<String, AllIcons> ICON_CACHE = new java.util.HashMap<>();
 
 	public CustomGeneratorKineticBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -84,7 +95,28 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 			Component.literal("Value"),
 			this,
 			new KineticScrollBoxTransform()
-		)
+		) {
+			@Override
+			public ValueSettingsBoard createBoard(net.minecraft.world.entity.player.Player player, net.minecraft.world.phys.BlockHitResult hitResult) {
+				if (scrollValueOptions != null && scrollValueOptions.length > 0) {
+					if (scrollValueIconNames != null && scrollValueIconNames.length > 0) {
+						// Icon + text mode: mirrors Create's ScrollOptionBehaviour
+						INamedIconOptions[] namedOpts = buildNamedIconOptions();
+						return new ValueSettingsBoard(label, Math.max(0, namedOpts.length - 1), 1,
+							ImmutableList.of(Component.literal("Select")),
+							new ScrollOptionSettingsFormatter(namedOpts));
+					} else {
+						// Text-only label mode
+						final String[] opts = scrollValueOptions;
+						return new ValueSettingsBoard(label, Math.max(0, opts.length - 1), 1,
+							ImmutableList.of(Component.literal("Select")),
+							new ValueSettingsFormatter(v -> Component.literal(
+								opts[Math.max(0, Math.min(v.value(), opts.length - 1))])));
+					}
+				}
+				return super.createBoard(player, hitResult);
+			}
+		}
 		.between(-256, 256)
 		.withFormatter(v -> {
 			if (scrollValueOptions != null && scrollValueOptions.length > 0) {
@@ -260,6 +292,52 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 			opts[i] = opts[i].trim();
 		}
 		this.scrollValueOptions = opts;
+		this.scrollValueIconNames = null;
+		this.scrollLabel = label;
+		this.scrollMin = 0;
+		this.scrollMax = Math.max(0, opts.length - 1);
+		if (scrollValue != null) {
+			scrollValue.setLabel(Component.literal(label));
+			scrollValue.between(0, Math.max(0, opts.length - 1));
+			scrollValue.setValue(Math.max(0, Math.min(defaultIndex, opts.length - 1)));
+		}
+		scrollValueEnabled = true;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
+	}
+
+	/**
+	 * Enables the scroll value box as a Create-style icon + text discrete selector.
+	 * Behaves like the Mechanical Bearing mode selector: each option shows its icon
+	 * in the interaction UI cursor together with the option name.
+	 *
+	 * @param label        Text shown at the top of the value picker (e.g. "Direction", "Mode")
+	 * @param options      Comma-separated list of option names, e.g. "Clockwise,Stopped,Counter-Clockwise"
+	 * @param icons        Comma-separated list of Create AllIcons field names, e.g. "I_ROTATE_PLACE,I_NONE,I_ROTATE_PLACE_RETURNED"
+	 *                     Use "" or "I_NONE" for options without a specific icon.
+	 *                     Supported icon names: I_ACTIVE, I_PASSIVE, I_PLAY, I_PAUSE, I_STOP,
+	 *                     I_ROTATE_PLACE, I_ROTATE_PLACE_RETURNED, I_ROTATE_NEVER_PLACE,
+	 *                     I_MOVE_PLACE, I_MOVE_PLACE_RETURNED, I_MOVE_NEVER_PLACE,
+	 *                     I_CART_ROTATE, I_CART_ROTATE_PAUSED, I_CART_ROTATE_LOCKED,
+	 *                     I_NONE, and all other AllIcons field names from the Create mod.
+	 * @param defaultIndex Index of the option that is selected by default (0-based)
+	 *
+	 * Example (from a procedure):
+	 *   enableScrollValueOptionsWithIcons("Direction", "Clockwise,Stopped,Counter-Clockwise",
+	 *       "I_ROTATE_PLACE,I_NONE,I_ROTATE_PLACE_RETURNED", 1)
+	 *   → interaction UI shows the "Stopped" icon + label; cycling changes to adjacent options
+	 */
+	public void enableScrollValueOptionsWithIcons(String label, String options, String icons, int defaultIndex) {
+		String[] opts = options.split(",");
+		for (int i = 0; i < opts.length; i++) {
+			opts[i] = opts[i].trim();
+		}
+		String[] iconNames = icons.split(",");
+		for (int i = 0; i < iconNames.length; i++) {
+			iconNames[i] = iconNames[i].trim();
+		}
+		this.scrollValueOptions = opts;
+		this.scrollValueIconNames = iconNames;
 		this.scrollLabel = label;
 		this.scrollMin = 0;
 		this.scrollMax = Math.max(0, opts.length - 1);
@@ -306,6 +384,55 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 			return "";
 		int idx = Math.max(0, Math.min(scrollValue.getValue(), scrollValueOptions.length - 1));
 		return scrollValueOptions[idx];
+	}
+
+	/**
+	 * Returns the AllIcons field name for the currently selected option when using icon+text mode.
+	 * Returns an empty string if not in icon mode or no icon is configured for the current option.
+	 */
+	public String getScrollValueIconName() {
+		if (scrollValue == null || scrollValueIconNames == null || scrollValueIconNames.length == 0)
+			return "";
+		int idx = Math.max(0, Math.min(scrollValue.getValue(), scrollValueIconNames.length - 1));
+		return scrollValueIconNames[idx];
+	}
+
+	/**
+	 * Builds an INamedIconOptions array from the current scrollValueOptions and scrollValueIconNames.
+	 * Option names are used directly as display text (not as translation keys).
+	 * Icons are resolved by AllIcons field name; unknown names fall back to AllIcons.I_NONE.
+	 */
+	private INamedIconOptions[] buildNamedIconOptions() {
+		final String[] opts = scrollValueOptions;
+		final String[] iconNames = scrollValueIconNames;
+		INamedIconOptions[] result = new INamedIconOptions[opts.length];
+		for (int i = 0; i < opts.length; i++) {
+			final String optLabel = opts[i];
+			final String iconName = (iconNames != null && i < iconNames.length) ? iconNames[i] : "I_NONE";
+			final AllIcons icon = resolveIcon(iconName);
+			result[i] = new INamedIconOptions() {
+				@Override public AllIcons getIcon() { return icon; }
+				/** Return the option label as the "translation key"; MC renders it literally when no translation exists. */
+				@Override public String getTranslationKey() { return optLabel; }
+			};
+		}
+		return result;
+	}
+
+	/**
+	 * Resolves an AllIcons instance from its field name (e.g. "I_ACTIVE").
+	 * Results are cached. Unknown names return AllIcons.I_NONE.
+	 */
+	private static AllIcons resolveIcon(String name) {
+		if (name == null || name.isBlank()) return AllIcons.I_NONE;
+		return ICON_CACHE.computeIfAbsent(name.trim(), k -> {
+			try {
+				return (AllIcons) AllIcons.class.getField(k).get(null);
+			} catch (NoSuchFieldException | IllegalAccessException | ClassCastException ignored) {
+				// Unknown icon name or inaccessible field — fall back to the blank icon.
+				return AllIcons.I_NONE;
+			}
+		});
 	}
 
 	// ============== Generator overrides
@@ -369,6 +496,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		tag.putInt("ScrollMax", scrollMax);
 		if (scrollValueOptions != null)
 			tag.putString("ScrollValueOptions", String.join(",", scrollValueOptions));
+		if (scrollValueIconNames != null)
+			tag.putString("ScrollValueIconNames", String.join(",", scrollValueIconNames));
 	}
 
 	@Override
@@ -402,6 +531,14 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 				String[] raw = opts.split(",");
 				for (int i = 0; i < raw.length; i++) raw[i] = raw[i].trim();
 				scrollValueOptions = raw;
+			}
+		}
+		if (tag.contains("ScrollValueIconNames")) {
+			String icons = tag.getString("ScrollValueIconNames");
+			if (!icons.isEmpty()) {
+				String[] raw = icons.split(",");
+				for (int i = 0; i < raw.length; i++) raw[i] = raw[i].trim();
+				scrollValueIconNames = raw;
 			}
 		}
 		// Re-apply label and range to the ScrollValueBehaviour so both server (world
