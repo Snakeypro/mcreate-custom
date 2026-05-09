@@ -1,0 +1,3 @@
+{ var _msvt = world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z}));
+if (_msvt instanceof CustomKineticBlockEntity _ckbe) _ckbe.setScrollValueTransform((double)(${input$boxX}), (double)(${input$boxY}), (double)(${input$boxZ}), (float)(${input$rotationX}), (float)(${input$rotationY}), (float)(${input$rotationZ}));
+else if (_msvt instanceof CustomGeneratorKineticBlockEntity _ckbge) _ckbge.setScrollValueTransform((double)(${input$boxX}), (double)(${input$boxY}), (double)(${input$boxZ}), (float)(${input$rotationX}), (float)(${input$rotationY}), (float)(${input$rotationZ})); }
