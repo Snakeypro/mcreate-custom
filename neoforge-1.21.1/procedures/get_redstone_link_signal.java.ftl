@@ -1,0 +1,1 @@
+(world.getBlockEntity(new BlockPos((int) ${input$x}, (int) ${input$y}, (int) ${input$z})) instanceof com.simibubi.create.content.redstone.link.RedstoneLinkBlockEntity _rlbe ? _rlbe.getReceivedSignal() : 0)

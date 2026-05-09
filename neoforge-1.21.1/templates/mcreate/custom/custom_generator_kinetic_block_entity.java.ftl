@@ -19,6 +19,7 @@ import java.util.List;
 
 import com.xenrao.mcreate.events.KineticTickEvent;
 import com.xenrao.mcreate.events.KineticScrollValueEvent;
+import com.xenrao.mcreate.events.GoggleTooltipEvent;
 
 import com.google.common.collect.ImmutableList;
 
@@ -502,6 +503,23 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		super.tick();
 		if (!disableTickEvent)
 			NeoForge.EVENT_BUS.post(new KineticTickEvent(level, getBlockPos(), getBlockState(), false));
+	}
+
+	// ============== Goggle Tooltip
+	@Override
+	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+		super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+		GoggleTooltipEvent event = new GoggleTooltipEvent(level, getBlockPos(), getBlockState(), isPlayerSneaking);
+		NeoForge.EVENT_BUS.post(event);
+		if (event.isCanceled())
+			return false;
+		if (event.shouldClearDefault())
+			tooltip.clear();
+		for (String line : event.getLines()) {
+			if (!line.isEmpty())
+				tooltip.add(Component.literal(line));
+		}
+		return true;
 	}
 
 	// ============== NBT
