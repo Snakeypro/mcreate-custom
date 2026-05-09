@@ -428,7 +428,8 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		return ICON_CACHE.computeIfAbsent(name.trim(), k -> {
 			try {
 				return (AllIcons) AllIcons.class.getField(k).get(null);
-			} catch (Exception e) {
+			} catch (NoSuchFieldException | IllegalAccessException | ClassCastException ignored) {
+				// Unknown icon name or inaccessible field — fall back to the blank icon.
 				return AllIcons.I_NONE;
 			}
 		});
