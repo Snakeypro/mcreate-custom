@@ -81,6 +81,14 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 	/** Numeric mode min/max — persisted so they survive world reload and client sync. */
 	private int scrollMin = -256;
 	private int scrollMax = 256;
+	/** Custom transform for the scroll value box. Disabled by default to preserve legacy behavior. */
+	private boolean scrollValueTransformCustom = false;
+	private double scrollValueBoxX = 8;
+	private double scrollValueBoxY = 15.5;
+	private double scrollValueBoxZ = 8;
+	private float scrollValueRotationX = 90f;
+	private float scrollValueRotationY = 0f;
+	private float scrollValueRotationZ = 0f;
 	/** Cached icon resolution map (field name → AllIcons instance). */
 	private static final java.util.Map<String, AllIcons> ICON_CACHE = new java.util.HashMap<>();
 
@@ -220,6 +228,22 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		if (scrollValue != null) {
 			scrollValue.setValue(value);
 		}
+	}
+
+	/**
+	 * Sets a custom value box transform in voxel coordinates and degrees.
+	 * Once set, this overrides the default auto-facing placement until changed again.
+	 */
+	public void setScrollValueTransform(double boxX, double boxY, double boxZ, float rotationX, float rotationY, float rotationZ) {
+		scrollValueTransformCustom = true;
+		scrollValueBoxX = boxX;
+		scrollValueBoxY = boxY;
+		scrollValueBoxZ = boxZ;
+		scrollValueRotationX = rotationX;
+		scrollValueRotationY = rotationY;
+		scrollValueRotationZ = rotationZ;
+		setChanged();
+		if (level != null && !level.isClientSide) sendData();
 	}
 
 	// ============== Scroll Value Box control
@@ -494,6 +518,13 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 		tag.putString("ScrollLabel", scrollLabel);
 		tag.putInt("ScrollMin", scrollMin);
 		tag.putInt("ScrollMax", scrollMax);
+		tag.putBoolean("ScrollValueTransformCustom", scrollValueTransformCustom);
+		tag.putDouble("ScrollValueBoxX", scrollValueBoxX);
+		tag.putDouble("ScrollValueBoxY", scrollValueBoxY);
+		tag.putDouble("ScrollValueBoxZ", scrollValueBoxZ);
+		tag.putFloat("ScrollValueRotationX", scrollValueRotationX);
+		tag.putFloat("ScrollValueRotationY", scrollValueRotationY);
+		tag.putFloat("ScrollValueRotationZ", scrollValueRotationZ);
 		if (scrollValueOptions != null)
 			tag.putString("ScrollValueOptions", String.join(",", scrollValueOptions));
 		if (scrollValueIconNames != null)
@@ -525,6 +556,20 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 			scrollMin = tag.getInt("ScrollMin");
 		if (tag.contains("ScrollMax"))
 			scrollMax = tag.getInt("ScrollMax");
+		if (tag.contains("ScrollValueTransformCustom"))
+			scrollValueTransformCustom = tag.getBoolean("ScrollValueTransformCustom");
+		if (tag.contains("ScrollValueBoxX"))
+			scrollValueBoxX = tag.getDouble("ScrollValueBoxX");
+		if (tag.contains("ScrollValueBoxY"))
+			scrollValueBoxY = tag.getDouble("ScrollValueBoxY");
+		if (tag.contains("ScrollValueBoxZ"))
+			scrollValueBoxZ = tag.getDouble("ScrollValueBoxZ");
+		if (tag.contains("ScrollValueRotationX"))
+			scrollValueRotationX = tag.getFloat("ScrollValueRotationX");
+		if (tag.contains("ScrollValueRotationY"))
+			scrollValueRotationY = tag.getFloat("ScrollValueRotationY");
+		if (tag.contains("ScrollValueRotationZ"))
+			scrollValueRotationZ = tag.getFloat("ScrollValueRotationZ");
 		if (tag.contains("ScrollValueOptions")) {
 			String opts = tag.getString("ScrollValueOptions");
 			if (!opts.isEmpty()) {
@@ -566,6 +611,9 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 		@Override
 		public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
+			if (scrollValueTransformCustom) {
+				return VecHelper.voxelSpace((float) scrollValueBoxX, (float) scrollValueBoxY, (float) scrollValueBoxZ);
+			}
 			if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
 				// Front face center, automatically rotated with block facing
 				return rotateHorizontally(state, VecHelper.voxelSpace(8, 8, 15.5f));
@@ -576,6 +624,13 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 
 		@Override
 		public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
+			if (scrollValueTransformCustom) {
+				TransformStack.of(ms)
+					.rotateXDegrees(scrollValueRotationX)
+					.rotateYDegrees(scrollValueRotationY)
+					.rotateZDegrees(scrollValueRotationZ);
+				return;
+			}
 			if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
 				float yRot = AngleHelper.horizontalAngle(
 					state.getValue(BlockStateProperties.HORIZONTAL_FACING)
