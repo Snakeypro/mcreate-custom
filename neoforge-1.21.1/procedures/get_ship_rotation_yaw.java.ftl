@@ -1,0 +1,1 @@
+dev.ryanhcode.sable.Sable.HELPER.getContaining(world, new net.minecraft.world.phys.Vec3((double)(${input$x}), (double)(${input$y}), (double)(${input$z}))) instanceof dev.ryanhcode.sable.sublevel.SubLevel _sable_sl ? Math.toDegrees(_sable_sl.logicalPose().orientation().getEulerAnglesXYZ(new org.joml.Vector3d()).y()) : 0.0
