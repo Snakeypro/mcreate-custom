@@ -38,7 +38,7 @@
       }
     ],
     "required_apis": [
-      "create_aeronautics"
+      "aeronautics_bundled"
     ]
   }
 }
