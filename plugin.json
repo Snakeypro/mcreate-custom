@@ -6,9 +6,9 @@
     2026001
   ],
   "info": {
-    "name": "Create & Create Aeronautics Api Support for 1.21.1 NeoForge",
-    "version": "3.1",
-    "description": "Api and kinetic support for Create 6.0.10 plus Create Aeronautics / Simulated 1.2.1 runtime integration for MCreator",
+    "name": "Create 6.0.7 Api and Kinetic Support for 1.21.1 NeoForge",
+    "version": "2.0",
+    "description": "Api and Kinetic support for Create 6.0.7 for MCreator",
     "author": "XenraO",
     "credits": "XenraO"
   }
