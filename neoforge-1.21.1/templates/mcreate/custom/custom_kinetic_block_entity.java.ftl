@@ -73,8 +73,10 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	private int scrollPrevValue = 0;
 	/** Comma-split option labels for discrete "option selector" mode. Null = numeric mode. */
 	private String[] scrollValueOptions = null;
-	/** Comma-split Create AllIcons field names for icon+text selector mode. Null = text-only mode. */
+	/** Comma-split icon field names for icon+text selector mode. Null = text-only mode. */
 	private String[] scrollValueIconNames = null;
+	/** Icon class name used to resolve scrollValueIconNames. Defaults to AllIcons for compatibility. */
+	private String scrollValueIconClass = AllIcons.class.getSimpleName();
 	/** Label shown in the value box. Persisted so it survives world reload and client sync. */
 	private String scrollLabel = "Value";
 	/** Numeric mode min/max — persisted so they survive world reload and client sync. */
@@ -88,8 +90,10 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	private float scrollValueRotationX = 90f;
 	private float scrollValueRotationY = 0f;
 	private float scrollValueRotationZ = 0f;
-	/** Cached icon resolution map (field name → AllIcons instance). */
+	/** Cached icon resolution map (icon class + field name → AllIcons instance). */
 	private static final java.util.Map<String, AllIcons> ICON_CACHE = new java.util.HashMap<>();
+	/** Cached icon class resolution map (requested class name → resolved icon class). */
+	private static final java.util.Map<String, Class<? extends AllIcons>> ICON_CLASS_CACHE = new java.util.HashMap<>();
 
 	public CustomKineticBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -237,6 +241,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		scrollMin = min;
 		scrollMax = max;
 		scrollValueOptions = null;
+		scrollValueIconNames = null;
+		scrollValueIconClass = AllIcons.class.getSimpleName();
 		scrollValueEnabled = true;
 		setChanged();
 		if (level != null && !level.isClientSide) sendData();
@@ -275,6 +281,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		}
 		this.scrollValueOptions = opts;
 		this.scrollValueIconNames = null;
+		this.scrollValueIconClass = AllIcons.class.getSimpleName();
 		this.scrollLabel = label;
 		this.scrollMin = 0;
 		this.scrollMax = Math.max(0, opts.length - 1);
@@ -295,13 +302,13 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	 *
 	 * @param label        Text shown at the top of the value picker (e.g. "Direction", "Mode")
 	 * @param options      Comma-separated list of option names, e.g. "Clockwise,Stopped,Counter-Clockwise"
-	 * @param icons        Comma-separated list of Create AllIcons field names, e.g. "I_ROTATE_PLACE,I_NONE,I_ROTATE_PLACE_RETURNED"
+	 * @param icons        Comma-separated list of icon field names, e.g. "I_ROTATE_PLACE,I_NONE,I_ROTATE_PLACE_RETURNED"
 	 *                     Use "" or "I_NONE" for options without a specific icon.
 	 *                     Supported icon names: I_ACTIVE, I_PASSIVE, I_PLAY, I_PAUSE, I_STOP,
 	 *                     I_ROTATE_PLACE, I_ROTATE_PLACE_RETURNED, I_ROTATE_NEVER_PLACE,
 	 *                     I_MOVE_PLACE, I_MOVE_PLACE_RETURNED, I_MOVE_NEVER_PLACE,
 	 *                     I_CART_ROTATE, I_CART_ROTATE_PAUSED, I_CART_ROTATE_LOCKED,
-	 *                     I_NONE, and all other AllIcons field names from the Create mod.
+	 *                     I_NONE, and all other AllIcons/custom icon class field names.
 	 * @param defaultIndex Index of the option that is selected by default (0-based)
 	 *
 	 * Example (from a procedure):
@@ -310,6 +317,17 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	 *   → interaction UI shows the "Stopped" icon + label; cycling changes to adjacent options
 	 */
 	public void enableScrollValueOptionsWithIcons(String label, String options, String icons, int defaultIndex) {
+		enableScrollValueOptionsWithIcons(label, options, icons, AllIcons.class.getSimpleName(), defaultIndex);
+	}
+
+	/**
+	 * Enables the scroll value box as a Create-style icon + text discrete selector.
+	 * Behaves like the Mechanical Bearing mode selector: each option shows its icon
+	 * in the interaction UI cursor together with the option name.
+	 *
+	 * @param iconClass    Icon class name, e.g. "AllIcons", "SimIcons", or a fully qualified class name
+	 */
+	public void enableScrollValueOptionsWithIcons(String label, String options, String icons, String iconClass, int defaultIndex) {
 		String[] opts = options.split(",");
 		for (int i = 0; i < opts.length; i++) {
 			opts[i] = opts[i].trim();
@@ -320,6 +338,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		}
 		this.scrollValueOptions = opts;
 		this.scrollValueIconNames = iconNames;
+		this.scrollValueIconClass = normalizeIconClassName(iconClass);
 		this.scrollLabel = label;
 		this.scrollMin = 0;
 		this.scrollMax = Math.max(0, opts.length - 1);
@@ -369,7 +388,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	}
 
 	/**
-	 * Returns the AllIcons field name for the currently selected option when using icon+text mode.
+	 * Returns the configured icon field name for the currently selected option when using icon+text mode.
 	 * Returns an empty string if not in icon mode or no icon is configured for the current option.
 	 */
 	public String getScrollValueIconName() {
@@ -382,16 +401,17 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	/**
 	 * Builds an INamedIconOptions array from the current scrollValueOptions and scrollValueIconNames.
 	 * Option names are used directly as display text (not as translation keys).
-	 * Icons are resolved by AllIcons field name; unknown names fall back to AllIcons.I_NONE.
+	 * Icons are resolved from the configured icon class; unknown classes/fields fall back safely.
 	 */
 	private INamedIconOptions[] buildNamedIconOptions() {
 		final String[] opts = scrollValueOptions;
 		final String[] iconNames = scrollValueIconNames;
+		final String iconClassName = scrollValueIconClass;
 		INamedIconOptions[] result = new INamedIconOptions[opts.length];
 		for (int i = 0; i < opts.length; i++) {
 			final String optLabel = opts[i];
 			final String iconName = (iconNames != null && i < iconNames.length) ? iconNames[i] : "I_NONE";
-			final AllIcons icon = resolveIcon(iconName);
+			final AllIcons icon = resolveIcon(iconClassName, iconName);
 			result[i] = new INamedIconOptions() {
 				@Override public AllIcons getIcon() { return icon; }
 				/** Return the option label as the "translation key"; MC renders it literally when no translation exists. */
@@ -402,19 +422,69 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	}
 
 	/**
-	 * Resolves an AllIcons instance from its field name (e.g. "I_ACTIVE").
-	 * Results are cached. Unknown names return AllIcons.I_NONE.
+	 * Resolves an AllIcons instance from the requested icon class and field name.
+	 * Supports Create's AllIcons plus custom subclasses like SimIcons. Unknown classes/fields
+	 * fall back to AllIcons and finally AllIcons.I_NONE.
 	 */
-	private static AllIcons resolveIcon(String name) {
-		if (name == null || name.isBlank()) return AllIcons.I_NONE;
-		return ICON_CACHE.computeIfAbsent(name.trim(), k -> {
-			try {
-				return (AllIcons) AllIcons.class.getField(k).get(null);
-			} catch (NoSuchFieldException | IllegalAccessException | ClassCastException ignored) {
-				// Unknown icon name or inaccessible field — fall back to the blank icon.
-				return AllIcons.I_NONE;
-			}
+	private static AllIcons resolveIcon(String iconClassName, String iconName) {
+		if (iconName == null || iconName.isBlank()) return AllIcons.I_NONE;
+		final String normalizedClassName = normalizeIconClassName(iconClassName);
+		final String normalizedIconName = iconName.trim();
+		return ICON_CACHE.computeIfAbsent(normalizedClassName + "#" + normalizedIconName, k -> {
+			AllIcons resolved = resolveIconFromClass(resolveIconClass(normalizedClassName), normalizedIconName);
+			if (resolved != AllIcons.I_NONE || isAllIconsClassName(normalizedClassName))
+				return resolved;
+			return resolveIconFromClass(AllIcons.class, normalizedIconName);
 		});
+	}
+
+	private static AllIcons resolveIconFromClass(Class<? extends AllIcons> iconClass, String iconName) {
+		try {
+			Object icon = iconClass.getField(iconName).get(null);
+			return icon instanceof AllIcons ? (AllIcons) icon : AllIcons.I_NONE;
+		} catch (NoSuchFieldException | IllegalAccessException | SecurityException ignored) {
+			return AllIcons.I_NONE;
+		}
+	}
+
+	private static Class<? extends AllIcons> resolveIconClass(String iconClassName) {
+		final String normalizedClassName = normalizeIconClassName(iconClassName);
+		if (isAllIconsClassName(normalizedClassName))
+			return AllIcons.class;
+		return ICON_CLASS_CACHE.computeIfAbsent(normalizedClassName, CustomKineticBlockEntity::findIconClass);
+	}
+
+	private static Class<? extends AllIcons> findIconClass(String iconClassName) {
+		for (String candidate : getIconClassCandidates(iconClassName)) {
+			try {
+				Class<?> clazz = Class.forName(candidate, false, CustomKineticBlockEntity.class.getClassLoader());
+				if (AllIcons.class.isAssignableFrom(clazz))
+					return clazz.asSubclass(AllIcons.class);
+			} catch (ClassNotFoundException ignored) {
+			} catch (LinkageError ignored) {
+			}
+		}
+		return AllIcons.class;
+	}
+
+	private static java.util.List<String> getIconClassCandidates(String iconClassName) {
+		java.util.LinkedHashSet<String> candidates = new java.util.LinkedHashSet<>();
+		candidates.add(iconClassName);
+		if (!iconClassName.contains(".")) {
+			candidates.add(AllIcons.class.getPackageName() + "." + iconClassName);
+			for (Package pkg : Package.getPackages()) {
+				candidates.add(pkg.getName() + "." + iconClassName);
+			}
+		}
+		return new java.util.ArrayList<>(candidates);
+	}
+
+	private static boolean isAllIconsClassName(String iconClassName) {
+		return AllIcons.class.getSimpleName().equals(iconClassName) || AllIcons.class.getName().equals(iconClassName);
+	}
+
+	private static String normalizeIconClassName(String iconClassName) {
+		return iconClassName == null || iconClassName.isBlank() ? AllIcons.class.getSimpleName() : iconClassName.trim();
 	}
 
 	// ============== Initialize
@@ -492,6 +562,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			tag.putString("ScrollValueOptions", String.join(",", scrollValueOptions));
 		if (scrollValueIconNames != null)
 			tag.putString("ScrollValueIconNames", String.join(",", scrollValueIconNames));
+		tag.putString("ScrollValueIconClass", normalizeIconClassName(scrollValueIconClass));
 	}
 
 	@Override
@@ -547,6 +618,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 				scrollValueIconNames = raw;
 			}
 		}
+		if (tag.contains("ScrollValueIconClass"))
+			scrollValueIconClass = normalizeIconClassName(tag.getString("ScrollValueIconClass"));
 		// Re-apply label and range to the ScrollValueBehaviour so both server (world
 		// reload) and client (sync packet) stay consistent with the stored configuration.
 		if (scrollValue != null) {
