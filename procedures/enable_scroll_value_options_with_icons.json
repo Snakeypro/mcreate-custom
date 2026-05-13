@@ -32,6 +32,11 @@
     },
     {
       "type": "input_value",
+      "name": "iconClass",
+      "check": "String"
+    },
+    {
+      "type": "input_value",
       "name": "defaultIndex",
       "check": "Number"
     }
@@ -49,9 +54,10 @@
       "<value name=\"label\"><block type=\"text\"><field name=\"TEXT\">Mode</field></block></value>",
       "<value name=\"options\"><block type=\"text\"><field name=\"TEXT\">Option A,Option B,Option C</field></block></value>",
       "<value name=\"icons\"><block type=\"text\"><field name=\"TEXT\">I_ACTIVE,I_PASSIVE,I_NONE</field></block></value>",
+      "<value name=\"iconClass\"><block type=\"text\"><field name=\"TEXT\">AllIcons</field></block></value>",
       "<value name=\"defaultIndex\"><block type=\"math_number\"><field name=\"NUM\">0</field></block></value>"
     ],
-    "inputs": ["x", "y", "z", "label", "options", "icons", "defaultIndex"],
+    "inputs": ["x", "y", "z", "label", "options", "icons", "iconClass", "defaultIndex"],
     "dependencies": [
       {"name": "world", "type": "world"}
     ],
