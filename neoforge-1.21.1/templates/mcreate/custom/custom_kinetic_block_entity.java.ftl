@@ -472,11 +472,67 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		candidates.add(iconClassName);
 		if (!iconClassName.contains(".")) {
 			candidates.add(AllIcons.class.getPackageName() + "." + iconClassName);
-			for (Package pkg : Package.getPackages()) {
-				candidates.add(pkg.getName() + "." + iconClassName);
-			}
+			String discoveredClassName = findClassNameOnClasspath(iconClassName);
+			if (discoveredClassName != null)
+				candidates.add(discoveredClassName);
 		}
 		return new java.util.ArrayList<>(candidates);
+	}
+
+	private static String findClassNameOnClasspath(String simpleClassName) {
+		String classPath = System.getProperty("java.class.path", "");
+		if (classPath.isBlank())
+			return null;
+		for (String entry : classPath.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) {
+			if (entry == null || entry.isBlank())
+				continue;
+			String className = findClassNameInPath(java.nio.file.Paths.get(entry), simpleClassName);
+			if (className != null)
+				return className;
+		}
+		return null;
+	}
+
+	private static String findClassNameInPath(java.nio.file.Path classPathEntry, String simpleClassName) {
+		if (!java.nio.file.Files.exists(classPathEntry))
+			return null;
+		if (java.nio.file.Files.isDirectory(classPathEntry))
+			return findClassNameInDirectory(classPathEntry, simpleClassName);
+		String fileName = classPathEntry.getFileName() != null ? classPathEntry.getFileName().toString() : "";
+		if (fileName.endsWith(".jar"))
+			return findClassNameInJar(classPathEntry, simpleClassName);
+		return null;
+	}
+
+	private static String findClassNameInDirectory(java.nio.file.Path root, String simpleClassName) {
+		try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.walk(root)) {
+			java.util.Optional<java.nio.file.Path> match = stream
+				.filter(java.nio.file.Files::isRegularFile)
+				.filter(path -> path.getFileName() != null && path.getFileName().toString().equals(simpleClassName + ".class"))
+				.findFirst();
+			if (match.isPresent()) {
+				String relativePath = root.relativize(match.get()).toString();
+				return relativePath.substring(0, relativePath.length() - ".class".length())
+					.replace(java.io.File.separatorChar, '.');
+			}
+		} catch (java.io.IOException ignored) {
+		}
+		return null;
+	}
+
+	private static String findClassNameInJar(java.nio.file.Path jarPath, String simpleClassName) {
+		try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarPath.toFile())) {
+			java.util.Enumeration<java.util.jar.JarEntry> entries = jar.entries();
+			String suffix = "/" + simpleClassName + ".class";
+			while (entries.hasMoreElements()) {
+				java.util.jar.JarEntry entry = entries.nextElement();
+				String name = entry.getName();
+				if (name.equals(simpleClassName + ".class") || name.endsWith(suffix))
+					return name.substring(0, name.length() - ".class".length()).replace('/', '.');
+			}
+		} catch (java.io.IOException ignored) {
+		}
+		return null;
 	}
 
 	private static boolean isAllIconsClassName(String iconClassName) {
