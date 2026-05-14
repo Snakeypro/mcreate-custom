@@ -36,6 +36,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueBox.IconValueBox;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import com.simibubi.create.foundation.gui.AllIcons;
 
@@ -146,7 +147,11 @@ public class McreateClientHandler {
 			.contract(0, 0, -.5f)
 			.move(0, 0, -.125f);
 		Component label = behaviour.label;
-		ValueBox box = new IconValueBox(label, icon, bb, pos);
+		INamedIconOptions wrappedIcon = new INamedIconOptions() {
+			@Override public AllIcons getIcon() { return icon; }
+			@Override public String getTranslationKey() { return label.getString(); }
+		};
+		ValueBox box = new IconValueBox(label, wrappedIcon, bb, pos);
 		box.passive(!highlight)
 			.wideOutline();
 		Outliner.getInstance().showOutline(behaviour, box.transform(behaviour.getSlotPositioning()))
