@@ -4,7 +4,6 @@ import net.neoforged.neoforge.common.NeoForge;
 
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.network.chat.Component;
@@ -36,7 +35,6 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollVa
 import com.simibubi.create.foundation.gui.AllIcons;
 
 import net.createmod.catnip.math.VecHelper;
-import net.createmod.catnip.math.AngleHelper;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 
 /**
@@ -712,8 +710,10 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	/**
 	 * Positions the white value box in 3D space relative to the block.
 	 *
-	 * If the block has a HORIZONTAL_FACING property, the box appears on the front face
-	 * and rotates with the block. Otherwise it appears on the top face.
+	 * The box always appears on the top face, regardless of whether the block uses
+	 * horizontal-only (Y-axis) or full 6-direction facing. This ensures that icons
+	 * intended for the top face are never incorrectly rotated onto a side face for
+	 * horizontal-only blocks.
 	 *
 	 * Override this inner class in your block entity to customise the position.
 	 */
@@ -724,11 +724,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			if (scrollValueTransformCustom) {
 				return VecHelper.voxelSpace((float) scrollValueBoxX, (float) scrollValueBoxY, (float) scrollValueBoxZ);
 			}
-			if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-				// Front face center, automatically rotated with block facing
-				return rotateHorizontally(state, VecHelper.voxelSpace(8, 8, 15.5f));
-			}
-			// Default: top face center
+			// Top face center — correct for both horizontal-only and full 6-direction blocks.
+			// Horizontal-only blocks only rotate on the Y axis and never tilt, so the top
+			// face always remains the top; placing the box there keeps it correctly oriented.
 			return VecHelper.voxelSpace(8, 15.5f, 8);
 		}
 
@@ -741,14 +739,11 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 					.rotateZDegrees(scrollValueRotationZ);
 				return;
 			}
-			if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-				float yRot = AngleHelper.horizontalAngle(
-					state.getValue(BlockStateProperties.HORIZONTAL_FACING)
-				);
-				TransformStack.of(ms).rotateYDegrees(yRot);
-			} else {
-				TransformStack.of(ms).rotateXDegrees(90);
-			}
+			// Rotate the box face to point upward (X+90°).
+			// This is correct for both horizontal-only and full 6-direction blocks:
+			// horizontal-only blocks never pitch, so a Y-only rotation would leave the
+			// icon facing sideways rather than up.
+			TransformStack.of(ms).rotateXDegrees(90);
 		}
 	}
 }
