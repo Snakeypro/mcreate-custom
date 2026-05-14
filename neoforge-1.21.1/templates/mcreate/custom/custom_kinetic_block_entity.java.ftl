@@ -412,8 +412,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		if (!isScrollValueIconModeEnabled())
 			return AllIcons.I_NONE;
 		int selected = scrollValue != null ? scrollValue.getValue() : 0;
-		int idx = Math.max(0, Math.min(selected, scrollValueOptions.length - 1));
-		String iconName = idx < scrollValueIconNames.length ? scrollValueIconNames[idx] : "I_NONE";
+		int selectedOptionIdx = Math.max(0, Math.min(selected, scrollValueOptions.length - 1));
+		int iconIdx = Math.max(0, Math.min(selectedOptionIdx, scrollValueIconNames.length - 1));
+		String iconName = selectedOptionIdx < scrollValueIconNames.length ? scrollValueIconNames[iconIdx] : "I_NONE";
 		return resolveIcon(scrollValueIconClass, iconName);
 	}
 
