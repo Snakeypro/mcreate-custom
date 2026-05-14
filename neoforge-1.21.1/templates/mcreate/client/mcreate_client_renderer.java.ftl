@@ -21,7 +21,6 @@ import com.xenrao.mcreate.custom.CustomKineticBlockEntity;
 import com.xenrao.mcreate.custom.CustomDirectionalKineticBlock;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.AllPartialModels;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -68,7 +67,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 		for (Direction localDir : Direction.values()) {
 		    if (!ckb.hasShaft(localDir)) continue;
 		
-		    Direction facing = state.getValue(DirectionalKineticBlock.FACING);
+		    Direction facing = ckb.getFacing(state);
 		    Direction worldDir = DirectionHelper.toWorldDirection(localDir, facing);
 		
 		    Axis axis = DIRECTION_AXIS.get(worldDir);
@@ -83,7 +82,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 		//cog
 		if (!ckb.hasSmallCog()) return;
 		
-		Direction facing = state.getValue(DirectionalKineticBlock.FACING);
+		Direction facing = ckb.getFacing(state);
 		
 		Axis cogAxis = switch (facing) {
 		    case EAST, WEST   -> Axis.X;
