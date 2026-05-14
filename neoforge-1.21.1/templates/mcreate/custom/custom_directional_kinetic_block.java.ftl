@@ -78,7 +78,11 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 	}
 
 	protected DirectionProperty getFacingProperty(BlockState state) {
-		return state.hasProperty(BlockStateProperties.HORIZONTAL_FACING) ? BlockStateProperties.HORIZONTAL_FACING : FACING;
+		if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING))
+			return BlockStateProperties.HORIZONTAL_FACING;
+		if (state.hasProperty(FACING))
+			return FACING;
+		throw new IllegalStateException("CustomDirectionalKineticBlock requires a facing property");
 	}
 
 	public Direction getFacing(BlockState state) {
@@ -94,11 +98,12 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 		BlockState defaultState = defaultBlockState();
 		DirectionProperty facingProperty = getFacingProperty(defaultState);
 		Direction preferred = getPreferredFacing(context);
-		if (preferred == null || (context.getPlayer() != null && context.getPlayer().isShiftKeyDown())) {
+		boolean sneaking = context.getPlayer() != null && context.getPlayer().isShiftKeyDown();
+		if (preferred == null || sneaking) {
 			if (hasHorizontalFacing(defaultState))
 				return defaultState.setValue(facingProperty, context.getHorizontalDirection().getOpposite());
 			Direction nearestLookingDirection = context.getNearestLookingDirection();
-			return defaultState.setValue(facingProperty, context.getPlayer() != null && context.getPlayer().isShiftKeyDown()
+			return defaultState.setValue(facingProperty, sneaking
 				? nearestLookingDirection
 				: nearestLookingDirection.getOpposite());
 		}
@@ -150,8 +155,8 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public BlockState mirror(BlockState state, Mirror mirrorIn) {
-		return state.rotate(mirrorIn.getRotation(getFacing(state)));
+		DirectionProperty facingProperty = getFacingProperty(state);
+		return state.setValue(facingProperty, mirrorIn.mirror(state.getValue(facingProperty)));
 	}
 }
