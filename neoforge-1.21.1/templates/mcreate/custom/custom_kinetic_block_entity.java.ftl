@@ -131,6 +131,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		.between(-256, 256)
 		.withFormatter(v -> {
 			if (scrollValueOptions != null && scrollValueOptions.length > 0) {
+				// Match Create's ScrollOptionBehaviour box rendering: icon-mode boxes render icon-only.
+				if (scrollValueIconNames != null && scrollValueIconNames.length > 0)
+					return "";
 				int i = Math.max(0, Math.min(v, scrollValueOptions.length - 1));
 				return scrollValueOptions[i];
 			}
@@ -396,6 +399,22 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			return "";
 		int idx = Math.max(0, Math.min(scrollValue.getValue(), scrollValueIconNames.length - 1));
 		return scrollValueIconNames[idx];
+	}
+
+	/** True when the scroll value is configured as an icon-backed option selector. */
+	public boolean isScrollValueIconModeEnabled() {
+		return scrollValueOptions != null && scrollValueOptions.length > 0
+			&& scrollValueIconNames != null && scrollValueIconNames.length > 0;
+	}
+
+	/** Selected icon for icon-mode option selectors, used by client-side value box rendering. */
+	public AllIcons getSelectedScrollValueIcon() {
+		if (!isScrollValueIconModeEnabled())
+			return AllIcons.I_NONE;
+		int selected = scrollValue != null ? scrollValue.getValue() : 0;
+		int idx = Math.max(0, Math.min(selected, scrollValueOptions.length - 1));
+		String iconName = idx < scrollValueIconNames.length ? scrollValueIconNames[idx] : "I_NONE";
+		return resolveIcon(scrollValueIconClass, iconName);
 	}
 
 	/**
