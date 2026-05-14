@@ -6,8 +6,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import net.createmod.catnip.data.Iterate;
 
@@ -35,14 +39,14 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 
 	@Override
 	public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-		Direction facing = state.getValue(FACING);
+		Direction facing = getFacing(state);
 		Direction localFace = DirectionHelper.toLocalDirection(face, facing);
 		return hasShaft(localFace);
 	}
 
 	@Override
 	public Direction.Axis getRotationAxis(BlockState state) {
-		return state.getValue(FACING).getAxis();
+		return getFacing(state).getAxis();
 	}
 
 	// ============== Getters
@@ -73,10 +77,44 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 	}
 
+	protected DirectionProperty getFacingProperty(BlockState state) {
+		if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING))
+			return BlockStateProperties.HORIZONTAL_FACING;
+		if (state.hasProperty(FACING))
+			return FACING;
+		throw new IllegalStateException("CustomDirectionalKineticBlock requires a facing property");
+	}
+
+	public Direction getFacing(BlockState state) {
+		return state.getValue(getFacingProperty(state));
+	}
+
+	protected boolean hasHorizontalFacing(BlockState state) {
+		return state.hasProperty(BlockStateProperties.HORIZONTAL_FACING);
+	}
+
+	@Override
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		BlockState defaultState = defaultBlockState();
+		DirectionProperty facingProperty = getFacingProperty(defaultState);
+		Direction preferred = getPreferredFacing(context);
+		boolean sneaking = context.getPlayer() != null && context.getPlayer().isShiftKeyDown();
+		if (preferred == null || sneaking) {
+			if (hasHorizontalFacing(defaultState))
+				return defaultState.setValue(facingProperty, context.getHorizontalDirection().getOpposite());
+			Direction nearestLookingDirection = context.getNearestLookingDirection();
+			return defaultState.setValue(facingProperty, sneaking
+				? nearestLookingDirection
+				: nearestLookingDirection.getOpposite());
+		}
+		return defaultState.setValue(facingProperty, preferred.getOpposite());
+	}
+
 	@Override
 	public Direction getPreferredFacing(BlockPlaceContext context) {
+		BlockState defaultState = defaultBlockState();
 		Direction preferredFacing = null;
-		for (Direction side : Iterate.directions) {
+		for (Direction side : hasHorizontalFacing(defaultState) ? Iterate.horizontalDirections : Iterate.directions) {
 			BlockPos neighborPos = context.getClickedPos().relative(side);
 			BlockState neighborState = context.getLevel().getBlockState(neighborPos);
 			if (!(neighborState.getBlock() instanceof IRotate neighbor))
@@ -100,12 +138,25 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 	}
 
 	private Direction findFacingForShaftOnSide(Direction worldSide) {
-		for (Direction facing : Direction.values()) {
+		BlockState defaultState = defaultBlockState();
+		for (Direction facing : hasHorizontalFacing(defaultState) ? Iterate.horizontalDirections : Direction.values()) {
 			Direction localDir = DirectionHelper.toLocalDirection(worldSide, facing);
 			if (hasShaft(localDir)) {
 				return facing;
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public BlockState rotate(BlockState state, Rotation rot) {
+		DirectionProperty facingProperty = getFacingProperty(state);
+		return state.setValue(facingProperty, rot.rotate(state.getValue(facingProperty)));
+	}
+
+	@Override
+	public BlockState mirror(BlockState state, Mirror mirrorIn) {
+		DirectionProperty facingProperty = getFacingProperty(state);
+		return state.setValue(facingProperty, mirrorIn.mirror(state.getValue(facingProperty)));
 	}
 }

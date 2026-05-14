@@ -20,7 +20,6 @@ import com.xenrao.mcreate.custom.CustomGeneratorKineticBlockEntity;
 import com.xenrao.mcreate.custom.CustomDirectionalKineticBlock;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
-import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.AllPartialModels;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -56,7 +55,7 @@ public class McreateGeneratorClientRenderer extends KineticBlockEntityRenderer<C
         for (Direction localDir : Direction.values()) {
             if (!ckb.hasShaft(localDir)) continue;
 
-            Direction facing = state.getValue(DirectionalKineticBlock.FACING);
+            Direction facing = ckb.getFacing(state);
             Direction worldDir = DirectionHelper.toWorldDirection(localDir, facing);
 
             Axis axis = DIRECTION_AXIS.get(worldDir);
@@ -71,7 +70,7 @@ public class McreateGeneratorClientRenderer extends KineticBlockEntityRenderer<C
         // Cog rendering
         if (!ckb.hasSmallCog()) return;
 
-        Direction facing = state.getValue(DirectionalKineticBlock.FACING);
+        Direction facing = ckb.getFacing(state);
 
         Axis cogAxis = switch (facing) {
             case EAST, WEST   -> Axis.X;
