@@ -614,7 +614,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			if (!line.isEmpty())
 				tooltip.add(Component.literal(line));
 		}
-		return true;
+		return !tooltip.isEmpty();
 	}
 
 	// ============== NBT

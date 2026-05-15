@@ -663,7 +663,7 @@ public abstract class CustomGeneratorKineticBlockEntity extends GeneratingKineti
 			if (!line.isEmpty())
 				tooltip.add(Component.literal(line));
 		}
-		return true;
+		return !tooltip.isEmpty();
 	}
 
 	// ============== NBT
