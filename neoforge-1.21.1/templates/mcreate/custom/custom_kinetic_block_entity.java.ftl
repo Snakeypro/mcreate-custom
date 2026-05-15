@@ -60,6 +60,8 @@ import dev.engine_room.flywheel.lib.transform.TransformStack;
 public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 
 	protected double impactValue = 2.0;
+	/** True once setImpactValue() has been called at least once from a procedure. */
+	protected boolean impactValueSet = false;
 
 	// ============== Events
 	protected boolean disableTickEvent = false;
@@ -165,6 +167,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 	// ============== Setters
 	public void setImpactValue(double value) {
 		impactValue = value;
+		impactValueSet = true;
 		if (level != null && !level.isClientSide) {
 			if (hasNetwork()) {
 				KineticNetwork network = getOrCreateNetwork();
@@ -598,7 +601,9 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 
 	@Override
 	public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-		super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+		// Only show the default kinetic stress line when impact has been explicitly configured.
+		if (impactValueSet)
+			super.addToGoggleTooltip(tooltip, isPlayerSneaking);
 		GoggleTooltipEvent event = new GoggleTooltipEvent(level, getBlockPos(), getBlockState(), isPlayerSneaking);
 		NeoForge.EVENT_BUS.post(event);
 		if (event.isCanceled())
@@ -620,6 +625,7 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 		tag.putBoolean("disableLazyTickEvent", disableLazyTickEvent);
 		tag.putInt("LazyTickRate", lazyTickRate);
 		tag.putDouble("ImpactValue", impactValue);
+		tag.putBoolean("ImpactValueSet", impactValueSet);
 		tag.putBoolean("ScrollValueEnabled", scrollValueEnabled);
 		tag.putInt("ScrollPrevValue", scrollPrevValue);
 		tag.putString("ScrollLabel", scrollLabel);
@@ -652,6 +658,8 @@ public abstract class CustomKineticBlockEntity extends KineticBlockEntity {
 			lazyTickRate = tag.getInt("LazyTickRate");
 		if (tag.contains("ImpactValue"))
 			impactValue = tag.getDouble("ImpactValue");
+		if (tag.contains("ImpactValueSet"))
+			impactValueSet = tag.getBoolean("ImpactValueSet");
 		if (tag.contains("ScrollValueEnabled"))
 			scrollValueEnabled = tag.getBoolean("ScrollValueEnabled");
 		if (tag.contains("ScrollPrevValue"))
