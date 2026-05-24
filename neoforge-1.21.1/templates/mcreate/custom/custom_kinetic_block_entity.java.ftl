@@ -1,4 +1,4 @@
-package com.xenrao.mcreate.custom;
+package com.snake.mcreate.custom;
 
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -17,9 +17,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import java.util.List;
 
-import com.xenrao.mcreate.events.KineticTickEvent;
-import com.xenrao.mcreate.events.KineticScrollValueEvent;
-import com.xenrao.mcreate.events.GoggleTooltipEvent;
+import com.snake.mcreate.events.KineticTickEvent;
+import com.snake.mcreate.events.KineticScrollValueEvent;
+import com.snake.mcreate.events.GoggleTooltipEvent;
 
 import com.google.common.collect.ImmutableList;
 
