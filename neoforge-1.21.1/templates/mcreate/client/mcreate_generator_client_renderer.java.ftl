@@ -1,4 +1,4 @@
-package com.xenrao.mcreate.client;
+package com.snake.mcreate.client;
 
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.Block;
@@ -15,9 +15,9 @@ import net.createmod.catnip.animation.AnimationTickHolder;
 import java.util.Map;
 import java.util.EnumMap;
 
-import com.xenrao.mcreate.util.DirectionHelper;
-import com.xenrao.mcreate.custom.CustomGeneratorKineticBlockEntity;
-import com.xenrao.mcreate.custom.CustomDirectionalKineticBlock;
+import com.snake.mcreate.util.DirectionHelper;
+import com.snake.mcreate.custom.CustomGeneratorKineticBlockEntity;
+import com.snake.mcreate.custom.CustomDirectionalKineticBlock;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.AllPartialModels;

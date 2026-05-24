@@ -1,4 +1,4 @@
-package com.xenrao.mcreate.events;
+package com.snake.mcreate.events;
 
 import net.neoforged.bus.api.Event;
 

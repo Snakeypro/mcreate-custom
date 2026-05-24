@@ -1,4 +1,4 @@
-package com.xenrao.mcreate.util;
+package com.snake.mcreate.util;
 
 import net.minecraft.core.Direction;
 
