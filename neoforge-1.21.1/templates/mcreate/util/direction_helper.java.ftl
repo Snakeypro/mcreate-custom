@@ -1,4 +1,4 @@
-package ${package}.${modid}.mcreate.util;
+package ${package}.mcreate.util;
 
 import net.minecraft.core.Direction;
 

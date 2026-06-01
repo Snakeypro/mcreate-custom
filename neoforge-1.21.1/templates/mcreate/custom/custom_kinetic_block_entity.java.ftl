@@ -1,4 +1,4 @@
-package ${package}.${modid}.mcreate.custom;
+package ${package}.mcreate.custom;
 
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -17,9 +17,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 
 import java.util.List;
 
-import ${package}.${modid}.mcreate.events.KineticTickEvent;
-import ${package}.${modid}.mcreate.events.KineticScrollValueEvent;
-import ${package}.${modid}.mcreate.events.GoggleTooltipEvent;
+import ${package}.mcreate.events.KineticTickEvent;
+import ${package}.mcreate.events.KineticScrollValueEvent;
+import ${package}.mcreate.events.GoggleTooltipEvent;
 
 import com.google.common.collect.ImmutableList;
 
