@@ -1,10 +1,9 @@
 <#include "procedures.java.ftl">
-import ${package}.mcreate.events.GoggleTooltipEvent;
 @EventBusSubscriber(value = {Dist.CLIENT})
 public class ${name}Procedure {
     @OnlyIn(Dist.CLIENT)
     @SubscribeEvent
-    public static void onEventTriggered(GoggleTooltipEvent event) {
+    public static void onEventTriggered(${package}.mcreate.events.GoggleTooltipEvent event) {
         <#assign dependenciesCode><#compress>
             <@procedureDependenciesCode dependencies, {
             "x": "event.getPos().getX()",

@@ -33,15 +33,10 @@
 
 <#assign isGeneratorBlock = name?starts_with("CKBG")>
 <#assign isKineticBlock = name?starts_with("CKB") && !isGeneratorBlock>
-<#assign kineticBaseClass = isGeneratorBlock?then("CustomGeneratorKineticBlockEntity", "CustomKineticBlockEntity")>
+<#assign kineticBaseClass = isGeneratorBlock
+	?then(package + ".mcreate.custom.CustomGeneratorKineticBlockEntity", package + ".mcreate.custom.CustomKineticBlockEntity")>
 
 package ${package}.block.entity;
-
-<#if isGeneratorBlock>
-import ${package}.mcreate.custom.CustomGeneratorKineticBlockEntity;
-<#elseif isKineticBlock>
-import ${package}.mcreate.custom.CustomKineticBlockEntity;
-</#if>
 
 <@javacompress>
 

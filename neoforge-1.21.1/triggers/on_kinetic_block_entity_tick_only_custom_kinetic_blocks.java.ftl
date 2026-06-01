@@ -1,9 +1,8 @@
 <#include "procedures.java.ftl">
-import ${package}.mcreate.events.KineticTickEvent;
 @EventBusSubscriber
 public class ${name}Procedure {
     @SubscribeEvent
-    public static void onEventTriggered(KineticTickEvent event) {
+    public static void onEventTriggered(${package}.mcreate.events.KineticTickEvent event) {
         <#assign dependenciesCode><#compress>
             <@procedureDependenciesCode dependencies, {
             "x": "event.getPos().getX()",

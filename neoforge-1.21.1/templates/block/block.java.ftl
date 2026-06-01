@@ -44,10 +44,6 @@
 
 package ${package}.block;
 
-<#if isKineticBlock>
-import ${package}.mcreate.custom.CustomDirectionalKineticBlock;
-</#if>
-
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 <@javacompress>
@@ -840,7 +836,7 @@ public class ${getClassName()}Block extends ${getBlockClass(data.blockBase)}
 </#function>
 
 <#function getBlockClass blockBase="">
-    <#if isKineticBlock><#return "CustomDirectionalKineticBlock">
+    <#if isKineticBlock><#return package + ".mcreate.custom.CustomDirectionalKineticBlock">
     <#elseif var_extends_class??><#return var_extends_class>
     <#elseif data.hasGravity><#return "FallingBlock">
     <#elseif blockBase == "Stairs"><#return "StairBlock">
