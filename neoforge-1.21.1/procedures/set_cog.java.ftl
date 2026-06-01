@@ -1,3 +1,3 @@
 <#include "mcitems.ftl">
-if (${mappedBlockToBlock(input$block)} instanceof CustomDirectionalKineticBlock ckb)
+if (${mappedBlockToBlock(input$block)} instanceof ${package}.mcreate.custom.CustomDirectionalKineticBlock ckb)
 	ckb.setSmallCog(${input$value});

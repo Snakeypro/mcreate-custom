@@ -37,6 +37,12 @@
 
 package ${package}.block.entity;
 
+<#if isGeneratorBlock>
+import ${package}.mcreate.custom.CustomGeneratorKineticBlockEntity;
+<#elseif isKineticBlock>
+import ${package}.mcreate.custom.CustomKineticBlockEntity;
+</#if>
+
 <@javacompress>
 
 <#-- ================================================================ -->

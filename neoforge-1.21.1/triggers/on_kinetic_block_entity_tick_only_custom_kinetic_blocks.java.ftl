@@ -1,4 +1,5 @@
 <#include "procedures.java.ftl">
+import ${package}.mcreate.events.KineticTickEvent;
 @EventBusSubscriber
 public class ${name}Procedure {
     @SubscribeEvent

@@ -44,6 +44,10 @@
 
 package ${package}.block;
 
+<#if isKineticBlock>
+import ${package}.mcreate.custom.CustomDirectionalKineticBlock;
+</#if>
+
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 
 <@javacompress>
