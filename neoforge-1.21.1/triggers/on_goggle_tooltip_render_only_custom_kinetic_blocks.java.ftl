@@ -1,4 +1,5 @@
 <#include "procedures.java.ftl">
+import ${package}.mcreate.events.GoggleTooltipEvent;
 @EventBusSubscriber(value = {Dist.CLIENT})
 public class ${name}Procedure {
     @OnlyIn(Dist.CLIENT)

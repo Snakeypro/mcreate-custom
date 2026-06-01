@@ -1,4 +1,5 @@
 <#include "procedures.java.ftl">
+import ${package}.mcreate.events.KineticScrollValueEvent;
 @EventBusSubscriber
 public class ${name}Procedure {
     @SubscribeEvent
