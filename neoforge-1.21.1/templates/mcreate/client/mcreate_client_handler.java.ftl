@@ -1,5 +1,5 @@
 <#-- @formatter:off -->
-package ${package}.${modid}.mcreate.client;
+package ${package}.mcreate.client;
 
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -29,8 +29,8 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 import java.util.ArrayList;
 
-import ${package}.${modid}.mcreate.custom.CustomKineticBlockEntity;
-import ${package}.${modid}.mcreate.custom.CustomGeneratorKineticBlockEntity;
+import ${package}.mcreate.custom.CustomKineticBlockEntity;
+import ${package}.mcreate.custom.CustomGeneratorKineticBlockEntity;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;

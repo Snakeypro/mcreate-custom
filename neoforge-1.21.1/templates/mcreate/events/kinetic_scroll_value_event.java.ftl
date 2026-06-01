@@ -1,4 +1,4 @@
-package ${package}.${modid}.mcreate.events;
+package ${package}.mcreate.events;
 
 import net.neoforged.bus.api.Event;
 
