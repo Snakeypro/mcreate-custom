@@ -1,9 +1,8 @@
 <#include "procedures.java.ftl">
-import ${package}.mcreate.events.KineticScrollValueEvent;
 @EventBusSubscriber
 public class ${name}Procedure {
     @SubscribeEvent
-    public static void onEventTriggered(KineticScrollValueEvent event) {
+    public static void onEventTriggered(${package}.mcreate.events.KineticScrollValueEvent event) {
         <#assign dependenciesCode><#compress>
             <@procedureDependenciesCode dependencies, {
             "x": "event.getPos().getX()",
