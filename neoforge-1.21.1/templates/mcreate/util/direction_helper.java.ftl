@@ -1,4 +1,4 @@
-package com.snake.mcreate.util;
+package ${package}.${modid}.mcreate.util;
 
 import net.minecraft.core.Direction;
 
