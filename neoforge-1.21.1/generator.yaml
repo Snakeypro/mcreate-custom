@@ -1,35 +1,35 @@
 base_templates:
   # client
   - template: mcreate/client/mcreate_client_handler.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/client/McreateClientHandler.java"
+    name: "@SRCROOT/${modid}/mcreate/client/McreateClientHandler.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/client/mcreate_client_renderer.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/client/McreateClientRenderer.java"
+    name: "@SRCROOT/${modid}/mcreate/client/McreateClientRenderer.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/client/mcreate_generator_client_renderer.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/client/McreateGeneratorClientRenderer.java"
+    name: "@SRCROOT/${modid}/mcreate/client/McreateGeneratorClientRenderer.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   # utils
   - template: mcreate/util/direction_helper.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/util/DirectionHelper.java"
+    name: "@SRCROOT/${modid}/mcreate/util/DirectionHelper.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   # custom extends
   - template: mcreate/custom/custom_kinetic_block_entity.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/custom/CustomKineticBlockEntity.java"
+    name: "@SRCROOT/${modid}/mcreate/custom/CustomKineticBlockEntity.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/custom/custom_directional_kinetic_block.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/custom/CustomDirectionalKineticBlock.java"
+    name: "@SRCROOT/${modid}/mcreate/custom/CustomDirectionalKineticBlock.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/custom/custom_generator_kinetic_block_entity.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/custom/CustomGeneratorKineticBlockEntity.java"
+    name: "@SRCROOT/${modid}/mcreate/custom/CustomGeneratorKineticBlockEntity.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   # events
   - template: mcreate/events/goggle_tooltip_event.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/events/GoggleTooltipEvent.java"
+    name: "@SRCROOT/${modid}/mcreate/events/GoggleTooltipEvent.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/events/kinetic_tick_event.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/events/KineticTickEvent.java"
+    name: "@SRCROOT/${modid}/mcreate/events/KineticTickEvent.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}
   - template: mcreate/events/kinetic_scroll_value_event.java.ftl
-    name: "@SRCROOT/com/snake/mcreate/events/KineticScrollValueEvent.java"
+    name: "@SRCROOT/${modid}/mcreate/events/KineticScrollValueEvent.java"
     condition: ${settings.getMCreatorDependenciesRaw()?seq_contains("create_")}

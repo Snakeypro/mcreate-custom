@@ -1,4 +1,4 @@
-package com.snake.mcreate.custom;
+package ${package}.${modid}.mcreate.custom;
 
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.Map;
 import java.util.EnumMap;
 
-import com.snake.mcreate.util.DirectionHelper;
+import ${package}.${modid}.mcreate.util.DirectionHelper;
 
 import com.simibubi.create.content.kinetics.simpleRelays.ICogWheel;
 import com.simibubi.create.content.kinetics.base.IRotate;

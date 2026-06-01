@@ -1,4 +1,4 @@
-package com.snake.mcreate.events;
+package ${package}.${modid}.mcreate.events;
 
 import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.Event;

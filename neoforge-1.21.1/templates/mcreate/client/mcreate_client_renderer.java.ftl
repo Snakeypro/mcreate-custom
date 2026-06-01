@@ -1,4 +1,4 @@
-package com.snake.mcreate.client;
+package ${package}.${modid}.mcreate.client;
 
 
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,9 +16,9 @@ import net.createmod.catnip.animation.AnimationTickHolder;
 import java.util.Map;
 import java.util.EnumMap;
 
-import com.snake.mcreate.util.DirectionHelper;
-import com.snake.mcreate.custom.CustomKineticBlockEntity;
-import com.snake.mcreate.custom.CustomDirectionalKineticBlock;
+import ${package}.${modid}.mcreate.util.DirectionHelper;
+import ${package}.${modid}.mcreate.custom.CustomKineticBlockEntity;
+import ${package}.${modid}.mcreate.custom.CustomDirectionalKineticBlock;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.AllPartialModels;
@@ -26,7 +26,8 @@ import com.simibubi.create.AllPartialModels;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 
-public class McreateClientRenderer extends KineticBlockEntityRenderer<CustomKineticBlockEntity> {
+
+public class McreateClientRenderer extends KineticBlockEntityRenderer<CustomKineticBlockEntity> {
     public McreateClientRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
