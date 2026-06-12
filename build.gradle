@@ -1,0 +1,58 @@
+plugins {
+    id "java"
+}
+
+repositories {
+    mavenCentral()
+    // MCreator libs - set mcreator_path via MCREATOR_PATH env or gradle.properties
+    flatDir { dirs mcreator_path + '/lib' }
+}
+
+group = 'net.snakeypro.mcreate'
+version = '2.1.0'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources', '.']
+            include 'plugin.json'
+            include 'lang/**'
+            include 'apis/**'
+            include 'neoforge-1.21.1/**'
+            include 'procedures/**'
+            include 'triggers/**'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: mcreator_path + '/lib', include: ['*.jar'])
+}
+
+tasks.jar {
+    archiveFileName.set("mcreate-custom.zip")
+    // Bundle resources alongside compiled classes
+    from sourceSets.main.resources
+}
+
+// Task: run MCreator with this plugin loaded
+tasks.register('runMCreatorWithPlugin', JavaExec) {
+    dependsOn jar
+
+    def pluginsDir = file("${buildDir}/libs")
+    environment("MCREATOR_PLUGINS_FOLDER", pluginsDir)
+    environment("MCREATOR_PLUGINS_DEV", "")
+
+    jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+
+    def mcreatorLibDir = file(mcreator_path + '/lib')
+    classpath = files(mcreatorLibDir.listFiles().findAll { it.name.endsWith('.jar') })
+
+    mainClass = 'net.mcreator.Launcher'
+    workingDir = file(mcreator_path)
+}
