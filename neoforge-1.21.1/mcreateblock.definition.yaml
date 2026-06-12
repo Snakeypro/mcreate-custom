@@ -1,4 +1,4 @@
-# Create Mod Block custom element definition built on top of block definition
+# Create mod block custom element definition built on top of block definition
 templates:
   - template: block/block.java.ftl
     name: "@SRCROOT/@BASEPACKAGEPATH/block/@NAMEBlock.java"
@@ -465,7 +465,7 @@ templates:
   - template: block/block.java.ftl # Wall sign class
     condition: "blockBase %= Sign"
     name: "@SRCROOT/@BASEPACKAGEPATH/block/@[getWallName()]Block.java"
-    variables: "extends_class=WallSignBlock"
+    variables: "extends_class=WallSignBlock;mcreate_element=true"
   - template: json/block_item.json.ftl
     condition:
       - hasBlockItem
@@ -489,7 +489,7 @@ templates:
   - template: block/block.java.ftl # Wall hanging sign class
     condition: "blockBase %= HangingSign"
     name: "@SRCROOT/@BASEPACKAGEPATH/block/@[getWallName()]Block.java"
-    variables: "extends_class=WallHangingSignBlock"
+    variables: "extends_class=WallHangingSignBlock;mcreate_element=true"
   - template: json/block_item.json.ftl
     condition:
       - hasBlockItem
