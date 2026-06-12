@@ -64,7 +64,7 @@ public class McreateClientRenderer extends KineticBlockEntityRenderer<CustomKine
 
         float time = AnimationTickHolder.getRenderTime(be.getLevel());
 
-		// Shaft döngüsü
+		// Shaft loop
 		for (Direction localDir : Direction.values()) {
 		    if (!ckb.hasShaft(localDir)) continue;
 		    if (!ckb.isShaftVisible(localDir)) continue;
