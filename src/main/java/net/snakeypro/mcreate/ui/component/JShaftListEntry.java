@@ -20,7 +20,7 @@ public class JShaftListEntry extends JSimpleListEntry<ShaftEntry> {
     private final JComboBox<String> type = new JComboBox<>(TYPES);
     private final JCheckBox independent = new JCheckBox("Independent");
     private final JSpinner speedMultiplier = new JSpinner(new SpinnerNumberModel(1.0, -100.0, 100.0, 0.1));
-    private final JCheckBox visible = new JCheckBox("Visible");
+    private final JCheckBox visible = new JCheckBox("Visible", true);
 
     public JShaftListEntry(JPanel parent, List<JShaftListEntry> entryList) {
         super(parent, entryList);
@@ -29,7 +29,6 @@ public class JShaftListEntry extends JSimpleListEntry<ShaftEntry> {
         type.setToolTipText("Shaft type: INPUT consumes rotation, OUTPUT provides it, BOTH does both");
         independent.setToolTipText("When checked, shaft operates independently from the block's main kinetic source");
         speedMultiplier.setToolTipText("Speed multiplier (negative reverses direction)");
-        visible.setSelected(true);
         visible.setToolTipText("Whether this shaft is rendered in the world");
 
         JLabel dirLabel = new JLabel("Dir:");
