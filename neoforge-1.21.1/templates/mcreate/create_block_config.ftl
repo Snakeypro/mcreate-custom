@@ -29,10 +29,12 @@
 	<#return defaultValue>
 </#function>
 
-<#assign createRole = createPropValue("CUSTOM:MCREATE_ROLE", "CONSUMER")?upper_case>
+<#assign createElementVariable = (mcreate_element!"false")?string?lower_case == "true">
+<#assign createElementRoleVariable = mcreate_role!"CONSUMER">
+<#assign createRole = createPropValue("CUSTOM:MCREATE_ROLE", createElementRoleVariable)?upper_case>
 <#assign createElementFlag = createPropBoolean("CUSTOM:MCREATE_MOD_BLOCK", false)>
 <#assign legacyCreateBlock = name?starts_with("CKB")>
 <#assign legacyCreateGenerator = name?starts_with("CKBG")>
 
-<#assign isCreateModBlock = createElementFlag || legacyCreateBlock>
+<#assign isCreateModBlock = createElementVariable || createElementFlag || legacyCreateBlock>
 <#assign isCreateGeneratorBlock = isCreateModBlock && (createRole == "GENERATOR" || legacyCreateGenerator)>
