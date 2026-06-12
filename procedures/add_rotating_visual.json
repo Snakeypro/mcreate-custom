@@ -1,0 +1,46 @@
+{
+  "args0": [
+    {
+      "type": "input_value",
+      "name": "partial",
+      "check": "String"
+    },
+    {
+      "type": "input_value",
+      "name": "direction",
+      "check": "Direction"
+    },
+    {
+      "type": "input_value",
+      "name": "speedMultiplier",
+      "check": "Number"
+    },
+    {
+      "type": "input_value",
+      "name": "block",
+      "check": "MCItemBlock"
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": "#c300ff",
+  "mcreator": {
+    "toolbox_id": "custom_kinetics",
+    "toolbox_init": [
+      "<value name=\"partial\"><block type=\"text\"><field name=\"TEXT\">SHAFTLESS_COGWHEEL</field></block></value>",
+      "<value name=\"direction\"><block type=\"direction_constant\">NORTH</block></value>",
+      "<value name=\"speedMultiplier\"><block type=\"math_number\"><field name=\"NUM\">1</field></block></value>",
+      "<value name=\"block\"><block type=\"mcitem_allblocks\"><field name=\"value\"></field></block></value>"
+    ],
+    "inputs": [
+      "partial",
+      "direction",
+      "speedMultiplier",
+      "block"
+    ],
+    "required_apis": [
+      "create_"
+    ]
+  }
+}

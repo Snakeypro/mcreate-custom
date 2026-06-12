@@ -2,6 +2,7 @@ package ${package}.mcreate.custom;
 
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.LevelAccessor;
@@ -15,9 +16,12 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 
 import net.createmod.catnip.data.Iterate;
 
-import java.util.Properties;
 import java.util.Map;
 import java.util.EnumMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Locale;
 
 import ${package}.mcreate.util.DirectionHelper;
 
@@ -26,14 +30,80 @@ import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 
 public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBlock implements ICogWheel {
-	private final Map<Direction, Boolean> shaftDirections = new EnumMap<>(Direction.class);
+	public enum ShaftMode {
+		NONE,
+		INPUT,
+		OUTPUT,
+		BOTH;
+
+		public boolean hasShaft() {
+			return this != NONE;
+		}
+	}
+
+	public static class ShaftConfig {
+		private final ShaftMode mode;
+		private final boolean independentlyControlled;
+		private final float speedMultiplier;
+		private final boolean visible;
+
+		public ShaftConfig(ShaftMode mode, boolean independentlyControlled, float speedMultiplier, boolean visible) {
+			this.mode = mode;
+			this.independentlyControlled = independentlyControlled;
+			this.speedMultiplier = speedMultiplier;
+			this.visible = visible;
+		}
+
+		public ShaftMode getMode() {
+			return mode;
+		}
+
+		public boolean isIndependentlyControlled() {
+			return independentlyControlled;
+		}
+
+		public float getSpeedMultiplier() {
+			return speedMultiplier;
+		}
+
+		public boolean isVisible() {
+			return visible;
+		}
+	}
+
+	public static class RotatingVisual {
+		private final String partial;
+		private final Direction localDirection;
+		private final float speedMultiplier;
+
+		public RotatingVisual(String partial, Direction localDirection, float speedMultiplier) {
+			this.partial = partial;
+			this.localDirection = localDirection;
+			this.speedMultiplier = speedMultiplier;
+		}
+
+		public String getPartial() {
+			return partial;
+		}
+
+		public Direction getLocalDirection() {
+			return localDirection;
+		}
+
+		public float getSpeedMultiplier() {
+			return speedMultiplier;
+		}
+	}
+
+	private final Map<Direction, ShaftConfig> shaftDirections = new EnumMap<>(Direction.class);
+	private final List<RotatingVisual> rotatingVisuals = new ArrayList<>();
 	private boolean smallCog = false;
 
 	public CustomDirectionalKineticBlock(Properties properties) {
 		super(properties);
-		// false direction
+		// legacy default: no configured shafts
 		for (Direction dir : Direction.values()) {
-			shaftDirections.put(dir, false);
+			shaftDirections.put(dir, new ShaftConfig(ShaftMode.NONE, false, 1f, true));
 		}
 	}
 
@@ -51,7 +121,34 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 
 	// ============== Getters
 	public boolean hasShaft(Direction direction) {
-		return shaftDirections.getOrDefault(direction, false);
+		return shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true))
+			.getMode()
+			.hasShaft();
+	}
+
+	public boolean isInputShaft(Direction direction) {
+		ShaftMode mode = shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true)).getMode();
+		return mode == ShaftMode.INPUT || mode == ShaftMode.BOTH;
+	}
+
+	public boolean isOutputShaft(Direction direction) {
+		ShaftMode mode = shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true)).getMode();
+		return mode == ShaftMode.OUTPUT || mode == ShaftMode.BOTH;
+	}
+
+	public boolean isShaftIndependentlyControlled(Direction direction) {
+		return shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true))
+			.isIndependentlyControlled();
+	}
+
+	public float getShaftSpeedMultiplier(Direction direction) {
+		return shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true))
+			.getSpeedMultiplier();
+	}
+
+	public boolean isShaftVisible(Direction direction) {
+		return shaftDirections.getOrDefault(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true))
+			.isVisible();
 	}
 
 	public boolean hasSmallCog() {
@@ -63,8 +160,45 @@ public abstract class CustomDirectionalKineticBlock extends DirectionalKineticBl
 		this.smallCog = value;
 	}
 
+	public void configureShaft(Direction direction, String mode, boolean independentlyControlled, float speedMultiplier, boolean visible) {
+		ShaftMode parsedMode = parseShaftMode(mode);
+		shaftDirections.put(direction, new ShaftConfig(parsedMode, independentlyControlled, speedMultiplier, visible));
+	}
+
+	public void clearShaftConfigurations() {
+		for (Direction direction : Direction.values()) {
+			shaftDirections.put(direction, new ShaftConfig(ShaftMode.NONE, false, 1f, true));
+		}
+	}
+
+	public void addRotatingVisual(String partial, Direction localDirection, float speedMultiplier) {
+		if (partial == null || partial.isBlank())
+			return;
+		rotatingVisuals.add(new RotatingVisual(partial.trim().toUpperCase(Locale.ROOT), localDirection, speedMultiplier));
+	}
+
+	public void clearRotatingVisuals() {
+		rotatingVisuals.clear();
+	}
+
+	public List<RotatingVisual> getRotatingVisuals() {
+		return Collections.unmodifiableList(rotatingVisuals);
+	}
+
 	public void setShaft(Direction direction, boolean value) {
-		shaftDirections.put(direction, value);
+		// backwards compatible API: true = both directions enabled
+		configureShaft(direction, value ? "BOTH" : "NONE", false, 1f, true);
+	}
+
+	private ShaftMode parseShaftMode(String mode) {
+		if (mode == null)
+			return ShaftMode.BOTH;
+		return switch (mode.trim().toUpperCase(Locale.ROOT)) {
+			case "NONE" -> ShaftMode.NONE;
+			case "INPUT" -> ShaftMode.INPUT;
+			case "OUTPUT" -> ShaftMode.OUTPUT;
+			default -> ShaftMode.BOTH;
+		};
 	}
 
 	@Override

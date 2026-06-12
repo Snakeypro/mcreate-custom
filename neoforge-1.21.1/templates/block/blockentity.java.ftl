@@ -30,9 +30,10 @@
 
 <#-- @formatter:off -->
 <#include "../procedures.java.ftl">
+<#include "../mcreate/create_block_config.ftl">
 
-<#assign isGeneratorBlock = name?starts_with("CKBG")>
-<#assign isKineticBlock = name?starts_with("CKB") && !isGeneratorBlock>
+<#assign isGeneratorBlock = isCreateGeneratorBlock>
+<#assign isKineticBlock = isCreateModBlock && !isGeneratorBlock>
 <#assign kineticBaseClass = isGeneratorBlock
 	?then(package + ".mcreate.custom.CustomGeneratorKineticBlockEntity", package + ".mcreate.custom.CustomKineticBlockEntity")>
 
