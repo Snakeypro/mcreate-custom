@@ -33,6 +33,7 @@
 <#include "../mcitems.ftl">
 <#include "../procedures.java.ftl">
 <#include "../triggers.java.ftl">
+<#include "../mcreate/create_block_config.ftl">
 
 <#assign filteredCustomProperties = data.customProperties?filter(e ->
 	e.property().getName().startsWith("CUSTOM:") || generator.map(e.property().getName(), "blockstateproperties") != "")>
@@ -40,7 +41,7 @@
 	<#assign filteredCustomProperties = []>
 </#if>
 
-<#assign isKineticBlock = name?starts_with("CKB")>
+<#assign isKineticBlock = isCreateModBlock>
 
 package ${package}.block;
 
