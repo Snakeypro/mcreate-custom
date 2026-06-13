@@ -64,38 +64,20 @@ public class McreateClientRenderer extends KineticBlockEntityRenderer<CustomKine
 
         float time = AnimationTickHolder.getRenderTime(be.getLevel());
 
-		// Shaft loop
+		// Shaft döngüsü
 		for (Direction localDir : Direction.values()) {
 		    if (!ckb.hasShaft(localDir)) continue;
-		    if (!ckb.isShaftVisible(localDir)) continue;
 		
 		    Direction facing = ckb.getFacing(state);
 		    Direction worldDir = DirectionHelper.toWorldDirection(localDir, facing);
 		
 		    Axis axis = DIRECTION_AXIS.get(worldDir);
 		    float offset = getRotationOffsetForPosition(be, be.getBlockPos(), axis);
-		    float angle = ((time * be.getSpeed() * ckb.getShaftSpeedMultiplier(localDir) * 3f / 10 + offset) % 360) / 180f * (float) Math.PI;
+		    float angle = ((time * be.getSpeed() * 3f / 10 + offset) % 360) / 180f * (float) Math.PI;
 		
 		    SuperByteBuffer shaftBuf = CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, worldDir);
 		    kineticRotationTransform(shaftBuf, be, axis, angle, light);
 		    shaftBuf.renderInto(ms, buffer.getBuffer(type));
-		}
-
-		for (CustomDirectionalKineticBlock.RotatingVisual rotatingVisual : ckb.getRotatingVisuals()) {
-		    Direction facing = ckb.getFacing(state);
-		    Direction worldDir = DirectionHelper.toWorldDirection(rotatingVisual.getLocalDirection(), facing);
-		    Axis axis = DIRECTION_AXIS.get(worldDir);
-		    float offset = getRotationOffsetForPosition(be, be.getBlockPos(), axis);
-		    float angle = ((time * be.getSpeed() * rotatingVisual.getSpeedMultiplier() * 3f / 10 + offset) % 360) / 180f * (float) Math.PI;
-
-		    SuperByteBuffer visualBuffer = switch (rotatingVisual.getPartial()) {
-		        case "SHAFTLESS_LARGE_COGWHEEL" -> CachedBuffers.partial(AllPartialModels.SHAFTLESS_LARGE_COGWHEEL, state);
-		        case "SHAFTLESS_COGWHEEL" -> CachedBuffers.partial(AllPartialModels.SHAFTLESS_COGWHEEL, state);
-		        default -> CachedBuffers.partialFacing(AllPartialModels.SHAFT_HALF, state, worldDir);
-		    };
-
-		    kineticRotationTransform(visualBuffer, be, axis, angle, light);
-		    visualBuffer.renderInto(ms, buffer.getBuffer(type));
 		}
 
 		//cog
