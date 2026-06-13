@@ -18,9 +18,6 @@ Legacy name-prefix behavior (`CKB*`, `CKBG*`) is still supported for compatibili
 
 - Explicit Create block detection helper (`templates/mcreate/create_block_config.ftl`)
 - Template routing for block + block entity now uses Create contract + legacy fallback
-- New generator definition for a dedicated `Create Mod Block` element (`neoforge-1.21.1/mcreateblock.definition.yaml`)
-  - Reuses the full regular block generation surface
-  - Forces Create block routing in templates via `mcreate_element=true`
 - List-style shaft configuration support in `CustomDirectionalKineticBlock`:
   - per-direction mode (`NONE`, `INPUT`, `OUTPUT`, `BOTH`)
   - independent-control flag
